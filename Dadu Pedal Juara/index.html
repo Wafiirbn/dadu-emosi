@@ -1,22 +1,27 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dadu Emosi - Pedal Juara</title>
-  <meta name="description" content="Aplikasi Kocok Dadu Emosi interaktif untuk program Pedal Juara. Roll dadu 3D dan ekspresikan perasaanmu!">
-  
+  <meta name="description"
+    content="Aplikasi Kocok Dadu Emosi interaktif untuk program Pedal Juara. Roll dadu 3D dan ekspresikan perasaanmu!">
+
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
-  
+  <link
+    href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Outfit:wght@300;400;600;800&display=swap"
+    rel="stylesheet">
+
   <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  
+
   <!-- Local Stylesheet -->
   <link rel="stylesheet" href="style.css?v=3">
 </head>
+
 <body>
 
   <!-- Background decorative elements -->
@@ -24,27 +29,14 @@
   <div class="bg-glow bg-glow-2"></div>
 
   <div class="app-container">
-    
+
     <!-- Header Section -->
     <header class="app-header">
       <div class="brand-container">
-        <!-- SVG Logo mimicking Pedal Juara branding -->
-        <svg class="brand-logo" viewBox="0 0 100 100" width="50" height="50">
-          <!-- Open Book -->
-          <path d="M15 70 C 35 60, 50 65, 50 75 C 50 65, 65 60, 85 70 L 85 30 C 65 20, 50 25, 50 35 C 50 25, 35 20, 15 30 Z" fill="#ffffff" stroke="#0f5132" stroke-width="3" />
-          <path d="M50 35 L 50 75" stroke="#0f5132" stroke-width="2" />
-          <!-- Star/Sparkle -->
-          <polygon points="50,10 54,22 66,22 56,30 60,42 50,34 40,42 44,30 34,22 46,22" fill="#ffc107" stroke="#e0a800" stroke-width="1" />
-          <!-- Small figure -->
-          <circle cx="50" cy="50" r="6" fill="#dc3545" />
-          <path d="M44 62 C 44 55, 56 55, 56 62" stroke="#dc3545" stroke-width="3" fill="none" />
-        </svg>
-        <div class="brand-text">
-          <span class="brand-title-pedal">PEDAL</span>
-          <span class="brand-title-juara">JUARA</span>
-        </div>
+        <img src="./assets/logo.png" alt="Pedal Juara" class="brand-logo-img">
       </div>
-      
+
+
       <div class="title-banner">
         <h1 class="main-title">DADU EMOSI</h1>
       </div>
@@ -52,7 +44,7 @@
 
     <!-- Main Workspace Grid -->
     <main class="main-content">
-      
+
       <!-- Dice Showcase Column -->
       <section class="dice-section">
         <div class="dice-perspective">
@@ -97,11 +89,11 @@
                 <div class="face-number">5</div>
               </div>
             </div>
-            <!-- Sisi 6 (Kanan) - Mual/Menjijikkan -->
+            <!-- Sisi 6 (Kanan) - Risih/Gak Suka -->
             <div class="dice-face face-right" data-face="6">
               <div class="face-content placeholder-face face-6">
                 <div class="face-emoji">🤢</div>
-                <div class="face-label">Mual/Menjijikkan</div>
+                <div class="face-label">Risih/Gak Suka</div>
                 <div class="face-number">6</div>
               </div>
             </div>
@@ -114,7 +106,7 @@
 
       <!-- Panel Control Column -->
       <section class="control-section">
-        
+
         <!-- Result Cards Container -->
         <div class="result-container card-glow" id="resultCard">
           <div class="result-placeholder" id="resultPlaceholder">
@@ -180,12 +172,13 @@
           <i class="fa-solid fa-times"></i>
         </button>
       </div>
-      
+
       <div class="modal-body">
         <div class="settings-intro">
-          <p>Unggah desain gambar Canva Anda untuk setiap sisi dadu (1-6). Format gambar yang didukung: PNG, JPG, JPEG, SVG.</p>
+          <p>Unggah desain gambar Canva Anda untuk setiap sisi dadu (1-6). Format gambar yang didukung: PNG, JPG, JPEG,
+            SVG.</p>
         </div>
-        
+
         <form class="uploader-grid" id="uploadForm">
           <!-- Face Customizer items 1-6 -->
           <div class="uploader-card">
@@ -287,7 +280,41 @@
     </div>
   </div>
 
+  <!-- Question Popup Modal -->
+  <div class="modal-overlay hidden" id="questionModal">
+    <div class="question-modal-container" id="questionModalBox">
+
+      <!-- Decorative confetti stars -->
+      <div class="star-burst" id="starBurst"></div>
+
+      <!-- Header: emoji + badge -->
+      <div class="qmodal-header" id="qmodalHeader">
+        <div class="qmodal-emoji-wrap">
+          <span class="qmodal-emoji" id="qmodalEmoji">😊</span>
+        </div>
+        <span class="qmodal-badge" id="qmodalBadge">SENANG</span>
+      </div>
+
+      <!-- Subtitle label -->
+      <p class="qmodal-label">Pertanyaan untukmu hari ini...</p>
+
+      <!-- Slot machine drum -->
+      <div class="slot-drum" id="slotDrum">
+        <div class="slot-track" id="slotTrack">
+          <div class="slot-text" id="slotText">...</div>
+        </div>
+      </div>
+
+      <!-- Close button (hidden until animation done) -->
+      <button class="qmodal-close-btn hidden" id="btnCloseQuestion">
+        ✓ &nbsp;Oke, Aku Mengerti!
+      </button>
+
+    </div>
+  </div>
+
   <!-- Local Script -->
   <script src="script.js?v=3"></script>
 </body>
+
 </html>

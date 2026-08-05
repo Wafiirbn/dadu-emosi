@@ -350,10 +350,19 @@ function rollDice() {
   // Calculate end angles
   currentRotX = currentRotX + spinsX + targetRotation.x - (currentRotX % 360);
   currentRotY = currentRotY + spinsY + targetRotation.y - (currentRotY % 360);
-  
-  // Apply rotation transition
-  diceCube.style.transition = 'transform 2.5s cubic-bezier(0.2, 0.85, 0.4, 1.02)';
-  diceCube.style.transform = `rotateX(${currentRotX}deg) rotateY(${currentRotY}deg)`;
+
+  // Fix: Reset transition to 'none' first and flush pending styles with a
+  // forced reflow. Then apply the real transition inside requestAnimationFrame
+  // so the browser always sees a transition change before the transform changes.
+  // Without this, the browser batches the style changes into one frame and
+  // skips the animation entirely.
+  diceCube.style.transition = 'none';
+  void diceCube.offsetHeight; // force reflow / flush pending styles
+
+  requestAnimationFrame(() => {
+    diceCube.style.transition = 'transform 2.5s cubic-bezier(0.2, 0.85, 0.4, 1.02)';
+    diceCube.style.transform = `rotateX(${currentRotX}deg) rotateY(${currentRotY}deg)`;
+  });
   
   // Synthesize sound timing
   queueRollSounds();
@@ -365,7 +374,7 @@ function rollDice() {
     isRolling = false;
     btnRoll.disabled = false;
     
-    // Resume floating from current orientation
+    // Freeze at landed position (no transition)
     diceCube.style.transition = 'none';
     
     // Save history and update UI
@@ -373,6 +382,7 @@ function rollDice() {
     displayResult(rolledFace);
   }, 2500);
 }
+
 
 // Display the rolled emotion in the result card
 function displayResult(faceNum) {
@@ -396,7 +406,11 @@ function displayResult(faceNum) {
   resultPlaceholder.classList.add('hidden');
   resultContent.classList.remove('hidden');
   resultCard.classList.add('card-glow');
+
+  // Show the question popup after the result card has settled
+  setTimeout(() => showQuestionPopup(faceNum), 1200);
 }
+
 
 // --- HISTORY LOGIC ---
 function saveRollToHistory(faceNum) {
@@ -574,3 +588,229 @@ function handleFiles(files, faceNum) {
   };
   reader.readAsDataURL(file);
 }
+
+// =============================================================
+//  QUESTION POPUP — SLOT MACHINE
+// =============================================================
+
+// Bank of questions per face number (matches EMOTIONS 1-6)
+const QUESTION_BANK = {
+  1: [
+    "Momen apa yang paling bikin kamu bahagia pas jualan di bazar kemarin?",
+    "Kekuatan diri apa yang paling kamu banggain dari diri kamu selama ikut program Pedal Juara ini?",
+    "Siapa kawan di kelompok yang paling jago bikin suasana jadi seru pas kita lagi capek ngolah sampah?",
+    "Pujian atau ucapan apa dari orang lain yang paling nempel di hati kamu selama ikut program ini?",
+    "Kalau inget-inget lagi, bagian mana dari proses bikin aksesoris yang paling kamu nikmatin?"
+  ],
+  2: [
+    "Ada gak momen yang bikin kamu sedih atau kecewa pas produk yang kamu buat susah payah ternyata gak laku atau rusak?",
+    "Apa yang paling bakal kamu kangenin kalau nanti program Pedal Juara ini udah selesai?",
+    "Pernah gak ngerasa sedih waktu udah kerja keras di program ini tapi hasilnya belum sesuai harapan? Gimana kamu bangkit lagi?",
+    "Ada gak momen kamu ngerasa sendirian pas lagi ngerjain tugas kelompok?",
+    "Kapan terakhir kali kamu ngerasa pengen nyerah aja pas ikut kegiatan ini, terus apa yang bikin kamu lanjut lagi?"
+  ],
+  3: [
+    "Jujur deh, momen apa yang paling bikin kamu darah tinggi pas lagi kerja kelompok atau pas bazar?",
+    "Gimana cara kamu nahan diri biar gak marah-marah pas pembeli nawar harga terlalu murah atau temen gak mau bantu?",
+    "Apa yang paling bikin kamu geram pas liat orang buang sampah sembarangan di sekolah kita?",
+    "Pernah gak kamu ngerasa kesel sama diri sendiri karena ngerasa kerjaanmu belum maksimal?",
+    "Kalau ada temen yang gak adil bagi tugas di kelompok, apa yang biasanya kamu lakuin?"
+  ],
+  4: [
+    "Pas pertama kali mau nawarin aksesoris ke orang asing di bazar, apa sih ketakutan terbesar kamu?",
+    "Ada gak rasa takut pas mikirin impian kamu ke depan? Ceritain dikit dong.",
+    "Apa ketakutan kamu kalau sampah plastik di dunia ini makin banyak dan gak ada yang peduli lagi?",
+    "Pernah gak takut kalau usaha yang udah kamu bangun bareng kelompok ternyata gagal?",
+    "Ketakutan apa yang paling sering muncul pas kamu harus tampil atau ngomong di depan orang banyak?"
+  ],
+  5: [
+    "Momen apa yang paling bikin kamu kaget selama ikut program Pedal Juara ini?",
+    "Pernah gak nemu bakat atau kemampuan diri sendiri yang ternyata gak kamu sangka-sangka?",
+    "Reaksi pembeli seperti apa yang paling bikin kamu kaget pas lagi jualan di bazar?",
+    "Ada gak hal tentang sampah atau daur ulang yang bikin kamu kaget waktu pertama kali tau?",
+    "Kejutan apa dari temen kelompok kamu yang paling nempel di ingatan, entah itu kejutan baik atau bikin geleng-geleng kepala?"
+  ],
+  6: [
+    "Pas pertama kali pegang tutup botol kotor atau sampah plastik, ada rasa risih gak? Gimana cara kamu ngalahin rasa itu?",
+    "Sifat temen atau sikap pembeli kayak gimana yang paling bikin kamu gak nyaman selama kegiatan?",
+    "Kebiasaan apa dari diri sendiri yang paling pengen kamu ubah biar kerja kelompok makin lancar?",
+    "Ada gak momen kamu ngerasa gak sreg sama cara kerja atau keputusan kelompok, tapi kamu diemin aja?",
+    "Hal kecil apa yang sering bikin kamu males duluan pas mulai kerja kelompok?"
+  ]
+};
+
+// DOM references for question popup
+const questionModal   = document.getElementById('questionModal');
+const questionModalBox = document.getElementById('questionModalBox');
+const qmodalEmoji     = document.getElementById('qmodalEmoji');
+const qmodalBadge     = document.getElementById('qmodalBadge');
+const slotDrum        = document.getElementById('slotDrum');
+const slotText        = document.getElementById('slotText');
+const starBurst       = document.getElementById('starBurst');
+const btnCloseQuestion = document.getElementById('btnCloseQuestion');
+
+// Slot machine timer handle (so we can cancel if needed)
+let slotTimer = null;
+
+// Open popup and run slot machine for a given face number
+function showQuestionPopup(faceNum) {
+  const emotion   = EMOTIONS[faceNum];
+  const questions = QUESTION_BANK[faceNum];
+
+  // Pick the final question randomly from the bank
+  const finalQuestion = questions[Math.floor(Math.random() * questions.length)];
+
+  // Apply emotion colour via CSS custom property on the modal box
+  questionModalBox.style.setProperty('--qmodal-color', emotion.color);
+
+  // Set header content
+  qmodalEmoji.textContent = emotion.emoji;
+  qmodalBadge.textContent = emotion.name.toUpperCase();
+  qmodalBadge.style.background = emotion.color;
+
+  // Reset drum state
+  slotDrum.classList.remove('slot-landed');
+  slotText.classList.remove('slot-final');
+  slotText.textContent = '...';
+  starBurst.innerHTML = '';
+  btnCloseQuestion.classList.add('hidden');
+
+  // Show the overlay
+  questionModal.classList.remove('hidden');
+
+  // Run the slot machine animation after a tiny settle delay
+  setTimeout(() => runSlotMachine(faceNum, finalQuestion), 300);
+}
+
+// Slot machine engine — progressively slows then lands on the target
+function runSlotMachine(faceNum, finalQuestion) {
+  // Gather all questions across ALL faces for the "spinning" phase
+  const allQuestions = Object.values(QUESTION_BANK).flat();
+
+  // Timing profile: starts fast, slows exponentially
+  // Each entry = [intervalMs, count] — how many frames at that speed
+  const stages = [
+    [60,  8],   // Blazing fast
+    [100, 6],   // Fast
+    [160, 5],   // Medium
+    [240, 4],   // Slowing
+    [350, 3],   // Slow
+    [480, 2],   // Very slow
+    [620, 2],   // Crawling
+  ];
+
+  let stageIdx = 0;
+  let frameCount = 0;
+  let totalFrames = 0;
+
+  // Count total spin frames
+  stages.forEach(([, count]) => { totalFrames += count; });
+
+  function spinFrame() {
+    if (stageIdx >= stages.length) {
+      // === LAND ===
+      slotText.textContent = finalQuestion;
+      slotText.classList.add('slot-final');
+      slotDrum.classList.add('slot-landed');
+      playSlotLandSound();
+      spawnStars(faceNum);
+
+      // Show close button after a beat
+      setTimeout(() => {
+        btnCloseQuestion.classList.remove('hidden');
+      }, 600);
+      return;
+    }
+
+    const [intervalMs, stageFrames] = stages[stageIdx];
+
+    // Show a random question from the full pool during spinning
+    const randomQ = allQuestions[Math.floor(Math.random() * allQuestions.length)];
+    slotText.textContent = randomQ;
+
+    frameCount++;
+    if (frameCount >= stageFrames) {
+      stageIdx++;
+      frameCount = 0;
+    }
+
+    slotTimer = setTimeout(spinFrame, intervalMs);
+  }
+
+  spinFrame();
+}
+
+// Confetti star burst when slot lands
+function spawnStars(faceNum) {
+  const emotion = EMOTIONS[faceNum];
+  const starEmojis = ['⭐', '✨', '🌟', '💫', '⚡', '🎉', '🎊'];
+  starBurst.innerHTML = '';
+
+  const count = 14;
+  for (let i = 0; i < count; i++) {
+    const star = document.createElement('span');
+    star.className = 'star';
+    star.textContent = starEmojis[Math.floor(Math.random() * starEmojis.length)];
+
+    // Random launch direction
+    const angle = (360 / count) * i + (Math.random() * 30 - 15);
+    const dist  = 60 + Math.random() * 80;
+    const tx    = Math.round(Math.cos((angle * Math.PI) / 180) * dist);
+    const ty    = Math.round(Math.sin((angle * Math.PI) / 180) * dist);
+    const rot   = Math.round(Math.random() * 360);
+    const dur   = (0.6 + Math.random() * 0.5).toFixed(2);
+    const delay = (Math.random() * 0.2).toFixed(2);
+
+    // Origin: centre of the modal box
+    star.style.cssText = `
+      left: 50%; top: 50%;
+      --tx: ${tx}px; --ty: ${ty}px;
+      --rot: ${rot}deg;
+      --dur: ${dur}s;
+      --delay: ${delay}s;
+      font-size: ${0.9 + Math.random() * 0.8}rem;
+    `;
+    starBurst.appendChild(star);
+  }
+}
+
+// Short "ding" sound when slot lands
+function playSlotLandSound() {
+  if (!soundEnabled) return;
+  initAudio();
+  if (!audioCtx) return;
+  const now = audioCtx.currentTime;
+  const osc  = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(880, now);
+  osc.frequency.setValueAtTime(1100, now + 0.08);
+  osc.frequency.setValueAtTime(880, now + 0.16);
+  gain.gain.setValueAtTime(0.35, now);
+  gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+  osc.start(now);
+  osc.stop(now + 0.41);
+}
+
+// Close the question popup and clean up
+function closeQuestionModal() {
+  if (slotTimer) { clearTimeout(slotTimer); slotTimer = null; }
+  questionModal.classList.add('hidden');
+  slotDrum.classList.remove('slot-landed');
+  slotText.classList.remove('slot-final');
+  starBurst.innerHTML = '';
+
+  // Resume dice idle float after closing popup
+  diceCube.classList.add('idle-float');
+}
+
+// Close button listener
+btnCloseQuestion.addEventListener('click', closeQuestionModal);
+
+// Also close on overlay click
+questionModal.addEventListener('click', (e) => {
+  if (e.target === questionModal) closeQuestionModal();
+});
+
