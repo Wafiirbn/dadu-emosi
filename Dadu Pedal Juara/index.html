@@ -19,7 +19,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
   <!-- Local Stylesheet -->
-  <link rel="stylesheet" href="style.css?v=3">
+  <link rel="stylesheet" href="style.css?v=5">
 </head>
 
 <body>
@@ -28,7 +28,101 @@
   <div class="bg-glow bg-glow-1"></div>
   <div class="bg-glow bg-glow-2"></div>
 
-  <div class="app-container">
+  <!-- ===== PLAYER SETUP SCREEN ===== -->
+  <div class="setup-screen" id="setupScreen">
+    <div class="setup-card">
+      <!-- Logo -->
+      <div class="setup-logo">
+        <img src="./assets/logo.png" alt="Pedal Juara" class="setup-logo-img">
+      </div>
+
+      <div class="setup-title-banner">
+        <h1 class="setup-main-title">DADU EMOSI</h1>
+      </div>
+
+      <p class="setup-subtitle">Masukkan nama pemain (2–8 orang)</p>
+
+      <!-- Player input list -->
+      <div class="player-inputs" id="playerInputs">
+        <!-- 8 player slots -->
+        <div class="player-input-row" id="playerRow1">
+          <span class="player-input-num">1</span>
+          <input type="text" class="player-name-input" id="playerName1" placeholder="Nama Pemain 1" maxlength="20">
+        </div>
+        <div class="player-input-row" id="playerRow2">
+          <span class="player-input-num">2</span>
+          <input type="text" class="player-name-input" id="playerName2" placeholder="Nama Pemain 2" maxlength="20">
+        </div>
+        <div class="player-input-row optional-row" id="playerRow3">
+          <span class="player-input-num">3</span>
+          <input type="text" class="player-name-input" id="playerName3" placeholder="Nama Pemain 3 (opsional)" maxlength="20">
+        </div>
+        <div class="player-input-row optional-row" id="playerRow4">
+          <span class="player-input-num">4</span>
+          <input type="text" class="player-name-input" id="playerName4" placeholder="Nama Pemain 4 (opsional)" maxlength="20">
+        </div>
+        <div class="player-input-row optional-row" id="playerRow5">
+          <span class="player-input-num">5</span>
+          <input type="text" class="player-name-input" id="playerName5" placeholder="Nama Pemain 5 (opsional)" maxlength="20">
+        </div>
+        <div class="player-input-row optional-row" id="playerRow6">
+          <span class="player-input-num">6</span>
+          <input type="text" class="player-name-input" id="playerName6" placeholder="Nama Pemain 6 (opsional)" maxlength="20">
+        </div>
+        <div class="player-input-row optional-row" id="playerRow7">
+          <span class="player-input-num">7</span>
+          <input type="text" class="player-name-input" id="playerName7" placeholder="Nama Pemain 7 (opsional)" maxlength="20">
+        </div>
+        <div class="player-input-row optional-row" id="playerRow8">
+          <span class="player-input-num">8</span>
+          <input type="text" class="player-name-input" id="playerName8" placeholder="Nama Pemain 8 (opsional)" maxlength="20">
+        </div>
+      </div>
+
+      <p class="setup-error hidden" id="setupError">⚠️ Masukkan minimal 2 nama pemain!</p>
+
+      <button class="btn-start-game" id="btnStartGame">
+        <i class="fa-solid fa-play"></i> Mulai Permainan!
+      </button>
+    </div>
+  </div>
+
+  <!-- ===== WHEEL OF NAMES MODAL ===== -->
+  <div class="modal-overlay hidden" id="wheelModal">
+    <div class="wheel-modal-container" id="wheelModalBox">
+      <div class="wheel-modal-header">
+        <h2 class="wheel-modal-title"><i class="fa-solid fa-shuffle"></i> Tentukan Urutan!</h2>
+      </div>
+
+      <p class="wheel-subtitle">Putar roda untuk tentukan siapa yang giliran pertama!</p>
+
+      <!-- Canvas wheel -->
+      <div class="wheel-wrapper">
+        <div class="wheel-pointer">▼</div>
+        <canvas id="wheelCanvas" width="320" height="320"></canvas>
+      </div>
+
+      <!-- Current turn display -->
+      <div class="wheel-result" id="wheelResult">
+        <span class="wheel-result-label">Giliran berikutnya:</span>
+        <span class="wheel-result-name" id="wheelResultName">—</span>
+      </div>
+
+      <!-- Turn queue -->
+      <div class="turn-queue" id="turnQueue"></div>
+
+      <div class="wheel-actions">
+        <button class="btn-spin-wheel" id="btnSpinWheel">
+          <i class="fa-solid fa-rotate"></i> Putar Roda!
+        </button>
+        <button class="btn-skip-wheel hidden" id="btnSkipWheel">
+          <i class="fa-solid fa-forward-step"></i> Lewati & Acak Langsung
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="app-container" id="appContainer" style="display:none">
 
     <!-- Header Section -->
     <header class="app-header">
@@ -139,6 +233,9 @@
             <button class="btn-minor" id="btnToggleSound" title="Aktifkan/Bisukan Suara" aria-label="Toggle Sound">
               <i class="fa-solid fa-volume-high" id="soundIcon"></i>
             </button>
+            <button class="btn-minor" id="btnFullscreen" title="Layar Penuh / Mode Proyektor" aria-label="Fullscreen Mode">
+              <i class="fa-solid fa-expand" id="fullscreenIcon"></i>
+            </button>
             <button class="btn-minor" id="btnOpenSettings" title="Unggah Desain Dadu" aria-label="Open Settings">
               <i class="fa-solid fa-sliders"></i>
             </button>
@@ -161,6 +258,15 @@
     <footer class="app-footer">
       <p>&copy; 2026 Pedal Juara. Dibuat dengan cinta untuk pembelajaran emosi.</p>
     </footer>
+  </div>
+
+  <!-- Current Player Banner -->
+  <div class="current-player-banner hidden" id="currentPlayerBanner">
+    <span class="cpb-label">Giliran:</span>
+    <span class="cpb-name" id="cpbName">—</span>
+    <button class="cpb-next-btn" id="btnNextTurn" title="Ganti giliran">
+      <i class="fa-solid fa-forward-step"></i> Next
+    </button>
   </div>
 
   <!-- Settings Modal for Customizing Face Designs -->
@@ -314,7 +420,7 @@
   </div>
 
   <!-- Local Script -->
-  <script src="script.js?v=3"></script>
+  <script src="script.js?v=5"></script>
 </body>
 
 </html>

@@ -10,6 +10,11 @@ let currentRotX = -20;
 let currentRotY = 30;
 let diceRollHistory = [];
 
+// ===== PLAYER & TURN STATE =====
+let allPlayers = [];        // Full list of player names entered in setup
+let playedThisRound = [];   // Names of players who completed their turn in current round
+let activePlayer = '';      // Player currently picked to roll the dice
+
 // IndexedDB config
 const DB_NAME = 'DaduEmosiDB';
 const DB_VERSION = 1;
@@ -56,6 +61,304 @@ const resultBadge = document.getElementById('resultBadge');
 const resultImageWrapper = document.getElementById('resultImageWrapper');
 const historyList = document.getElementById('historyList');
 
+// Setup screen elements
+const setupScreen = document.getElementById('setupScreen');
+const btnStartGame = document.getElementById('btnStartGame');
+const setupError = document.getElementById('setupError');
+const appContainer = document.getElementById('appContainer');
+
+// Wheel elements
+const wheelModal = document.getElementById('wheelModal');
+const wheelCanvas = document.getElementById('wheelCanvas');
+const btnSpinWheel = document.getElementById('btnSpinWheel');
+const btnSkipWheel = document.getElementById('btnSkipWheel');
+const wheelResultName = document.getElementById('wheelResultName');
+const turnQueueEl = document.getElementById('turnQueue');
+
+// Current player banner
+const currentPlayerBanner = document.getElementById('currentPlayerBanner');
+const cpbName = document.getElementById('cpbName');
+const btnNextTurn = document.getElementById('btnNextTurn');
+
+// ===== WHEEL COLORS (per segment) =====
+const WHEEL_COLORS = [
+  '#712cf9', '#198754', '#fd7e14', '#0d6efd',
+  '#dc3545', '#20c997', '#ffc107', '#e91e8c'
+];
+
+// ===== SETUP SCREEN LOGIC =====
+btnStartGame.addEventListener('click', () => {
+  const inputs = document.querySelectorAll('.player-name-input');
+  const names = [];
+  inputs.forEach(inp => {
+    const val = inp.value.trim();
+    if (val) names.push(val);
+  });
+
+  if (names.length < 2) {
+    setupError.classList.remove('hidden');
+    return;
+  }
+  setupError.classList.add('hidden');
+
+  allPlayers = [...names];
+  playedThisRound = [];
+  activePlayer = '';
+
+  setupScreen.style.display = 'none';
+  openWheelModal(true);
+});
+
+// Enter key on last filled input submits
+document.querySelectorAll('.player-name-input').forEach((inp, idx, arr) => {
+  inp.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const next = arr[idx + 1];
+      if (next) next.focus();
+      else btnStartGame.click();
+    }
+  });
+});
+
+// ===== WHEEL OF NAMES LOGIC =====
+let wheelSpinning = false;
+let wheelCurrentAngle = 0;  // current rotation in degrees
+let wheelNames = [];        // current pool of players on wheel
+
+function getUnplayedPlayers() {
+  return allPlayers.filter(p => !playedThisRound.includes(p));
+}
+
+function openWheelModal(forcedNewRound = false) {
+  let unplayed = getUnplayedPlayers();
+  let isNewRound = forcedNewRound;
+
+  // If all players have played this round, reset round pool!
+  if (unplayed.length === 0) {
+    playedThisRound = [];
+    unplayed = [...allPlayers];
+    isNewRound = true;
+  }
+
+  wheelNames = [...unplayed];
+  wheelCurrentAngle = 0;
+  wheelSpinning = false;
+  activePlayer = '';
+  wheelResultName.textContent = '—';
+  wheelResultName.classList.remove('pop-in');
+
+  const wheelSubtitle = document.querySelector('.wheel-subtitle');
+  if (wheelSubtitle) {
+    if (isNewRound) {
+      wheelSubtitle.textContent = `🎉 Ronde Baru! Semua pemain masuk roda kembali (${wheelNames.length} pemain)`;
+    } else {
+      wheelSubtitle.textContent = `Putar roda! (Sisa ${wheelNames.length} dari ${allPlayers.length} pemain di ronde ini)`;
+    }
+  }
+
+  // Reset button state
+  btnSpinWheel.disabled = false;
+  btnSpinWheel.innerHTML = '<i class="fa-solid fa-rotate"></i> Putar Roda!';
+  btnSpinWheel.onclick = () => {
+    if (wheelSpinning) return;
+    spinWheel();
+  };
+
+  btnSkipWheel.classList.remove('hidden');
+
+  renderTurnPills();
+  drawWheel();
+  wheelModal.classList.remove('hidden');
+}
+
+function drawWheel() {
+  const canvas = wheelCanvas;
+  const ctx = canvas.getContext('2d');
+  const N = wheelNames.length;
+  const R = canvas.width / 2;
+  const cx = R, cy = R;
+  const arc = (2 * Math.PI) / N;
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.rotate((wheelCurrentAngle * Math.PI) / 180);
+  ctx.translate(-cx, -cy);
+
+  for (let i = 0; i < N; i++) {
+    const startAngle = i * arc - Math.PI / 2;
+    const endAngle = startAngle + arc;
+
+    // Draw slice
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.arc(cx, cy, R - 2, startAngle, endAngle);
+    ctx.closePath();
+    ctx.fillStyle = WHEEL_COLORS[i % WHEEL_COLORS.length];
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Draw label
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(startAngle + arc / 2);
+    ctx.textAlign = 'right';
+    ctx.fillStyle = '#ffffff';
+    ctx.font = `bold ${Math.min(14, Math.floor(R / Math.max(N, 2) * 1.5))}px Fredoka, Outfit, sans-serif`;
+    ctx.shadowColor = 'rgba(0,0,0,0.6)';
+    ctx.shadowBlur = 4;
+
+    const maxChars = Math.max(6, Math.floor(R / 10));
+    const label = wheelNames[i].length > maxChars
+      ? wheelNames[i].slice(0, maxChars) + '…'
+      : wheelNames[i];
+    ctx.fillText(label, R - 14, 5);
+    ctx.restore();
+  }
+
+  // Center circle
+  ctx.beginPath();
+  ctx.arc(cx, cy, 22, 0, 2 * Math.PI);
+  ctx.fillStyle = '#11251c';
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+  ctx.lineWidth = 3;
+  ctx.stroke();
+
+  // Center icon
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 16px Fredoka, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.shadowBlur = 0;
+  ctx.fillText('🎲', cx, cy);
+
+  ctx.restore();
+}
+
+btnSpinWheel.addEventListener('click', () => {
+  if (wheelSpinning) return;
+  spinWheel();
+});
+
+btnSkipWheel.addEventListener('click', () => {
+  if (wheelNames.length === 0) return;
+  const winnerIdx = Math.floor(Math.random() * wheelNames.length);
+  const winner = wheelNames[winnerIdx];
+  showWheelResult(winner, winnerIdx);
+});
+
+function spinWheel() {
+  if (wheelNames.length === 0) return;
+
+  wheelSpinning = true;
+  btnSpinWheel.disabled = true;
+  btnSkipWheel.classList.add('hidden');
+
+  const N = wheelNames.length;
+  const arc = 360 / N;
+  const winnerIdx = Math.floor(Math.random() * N);
+
+  // Calculate exact angle to align winnerIdx slice center with top pointer (270° / -90°)
+  const desiredMod = (360 - (winnerIdx * arc + arc / 2)) % 360;
+  const currentMod = ((wheelCurrentAngle % 360) + 360) % 360;
+  let delta = (desiredMod - currentMod) % 360;
+  if (delta < 0) delta += 360;
+
+  const totalSpins = (5 + Math.floor(Math.random() * 4)) * 360; // 5-8 full spins
+  const rotationAmount = totalSpins + delta;
+
+  const startAngle = wheelCurrentAngle;
+  const finalAngle = startAngle + rotationAmount;
+
+  const duration = 4000 + Math.random() * 1200; // 4-5.2s
+  const startTime = performance.now();
+
+  function animate(now) {
+    const elapsed = now - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+
+    // Ease out cubic
+    const eased = 1 - Math.pow(1 - progress, 3);
+    wheelCurrentAngle = startAngle + rotationAmount * eased;
+
+    drawWheel();
+
+    if (progress < 1) {
+      requestAnimationFrame(animate);
+    } else {
+      wheelCurrentAngle = finalAngle;
+      drawWheel();
+      wheelSpinning = false;
+
+      const winner = wheelNames[winnerIdx];
+      showWheelResult(winner, winnerIdx);
+    }
+  }
+
+  requestAnimationFrame(animate);
+}
+
+function showWheelResult(winnerName, winnerIdx) {
+  activePlayer = winnerName;
+
+  // Pop-in animation on name
+  wheelResultName.classList.remove('pop-in');
+  void wheelResultName.offsetWidth;
+  wheelResultName.textContent = winnerName;
+  wheelResultName.classList.add('pop-in');
+
+  playSlotLandSound();
+  renderTurnPills();
+
+  // Change button to proceed to dice roll
+  btnSpinWheel.disabled = false;
+  btnSpinWheel.innerHTML = `<i class="fa-solid fa-dice"></i> Kocok Dadu untuk ${winnerName}!`;
+  btnSpinWheel.onclick = () => {
+    startTurnForActivePlayer();
+  };
+}
+
+function renderTurnPills() {
+  turnQueueEl.innerHTML = '';
+  allPlayers.forEach(name => {
+    const pill = document.createElement('div');
+    const isCurrent = name === activePlayer;
+    const isPlayed = playedThisRound.includes(name);
+
+    if (isCurrent) {
+      pill.className = 'turn-pill pill-active';
+      pill.innerHTML = `<i class="fa-solid fa-star"></i> ${name}`;
+    } else if (isPlayed) {
+      pill.className = 'turn-pill pill-done';
+      pill.innerHTML = `<i class="fa-solid fa-check"></i> ${name}`;
+    } else {
+      pill.className = 'turn-pill';
+      pill.innerHTML = `<i class="fa-solid fa-user"></i> ${name}`;
+    }
+    turnQueueEl.appendChild(pill);
+  });
+}
+
+function startTurnForActivePlayer() {
+  wheelModal.classList.add('hidden');
+  appContainer.style.display = '';
+
+  // Show current player banner
+  currentPlayerBanner.classList.remove('hidden');
+  cpbName.textContent = activePlayer;
+}
+
+btnNextTurn.addEventListener('click', () => {
+  openWheelModal();
+});
+
+
+
 // Initialize App
 document.addEventListener('DOMContentLoaded', () => {
   initIndexedDB();
@@ -65,6 +368,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Make sure the dice floats on start
   diceCube.classList.add('idle-float');
 });
+
 
 // --- AUDIO SYNTHESIS (Web Audio API) ---
 let audioCtx = null;
@@ -491,6 +795,42 @@ function setupEventListeners() {
       soundIcon.className = 'fa-solid fa-volume-xmark';
     }
   });
+
+  // Fullscreen Proyektor / Classroom Mode Toggle
+  const btnFullscreen = document.getElementById('btnFullscreen');
+  const fullscreenIcon = document.getElementById('fullscreenIcon');
+
+  function toggleFullscreen() {
+    if (!document.fullscreenElement && !document.webkitFullscreenElement && !document.msFullscreenElement) {
+      const docEl = document.documentElement;
+      if (docEl.requestFullscreen) docEl.requestFullscreen();
+      else if (docEl.webkitRequestFullscreen) docEl.webkitRequestFullscreen();
+      else if (docEl.msRequestFullscreen) docEl.msRequestFullscreen();
+    } else {
+      if (document.exitFullscreen) document.exitFullscreen();
+      else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+      else if (document.msExitFullscreen) document.msExitFullscreen();
+    }
+  }
+
+  function updateFullscreenUI() {
+    const isFS = !!(document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement);
+    if (isFS) {
+      document.body.classList.add('fullscreen-mode');
+      if (fullscreenIcon) fullscreenIcon.className = 'fa-solid fa-compress';
+    } else {
+      document.body.classList.remove('fullscreen-mode');
+      if (fullscreenIcon) fullscreenIcon.className = 'fa-solid fa-expand';
+    }
+  }
+
+  if (btnFullscreen) {
+    btnFullscreen.addEventListener('click', toggleFullscreen);
+  }
+
+  document.addEventListener('fullscreenchange', updateFullscreenUI);
+  document.addEventListener('webkitfullscreenchange', updateFullscreenUI);
+  document.addEventListener('MSFullscreenChange', updateFullscreenUI);
   
   // Modal toggle actions
   btnOpenSettings.addEventListener('click', () => {
@@ -668,6 +1008,16 @@ function showQuestionPopup(faceNum) {
   qmodalBadge.textContent = emotion.name.toUpperCase();
   qmodalBadge.style.background = emotion.color;
 
+  // Set personalized label if active player is loaded
+  const qmodalLabel = document.querySelector('.qmodal-label');
+  if (qmodalLabel) {
+    if (activePlayer) {
+      qmodalLabel.innerHTML = `Pertanyaan untuk <strong style="color:#fff;">${activePlayer}</strong>...`;
+    } else {
+      qmodalLabel.textContent = 'Pertanyaan untukmu hari ini...';
+    }
+  }
+
   // Reset drum state
   slotDrum.classList.remove('slot-landed');
   slotText.classList.remove('slot-final');
@@ -794,6 +1144,16 @@ function playSlotLandSound() {
   osc.stop(now + 0.41);
 }
 
+// Helper: Fisher-Yates Shuffle
+function shuffleArray(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
 // Close the question popup and clean up
 function closeQuestionModal() {
   if (slotTimer) { clearTimeout(slotTimer); slotTimer = null; }
@@ -804,6 +1164,18 @@ function closeQuestionModal() {
 
   // Resume dice idle float after closing popup
   diceCube.classList.add('idle-float');
+
+  // Mark current player as played AFTER their question turn completes
+  if (activePlayer && !playedThisRound.includes(activePlayer)) {
+    playedThisRound.push(activePlayer);
+  }
+
+  // Immediately open Roulette Wheel for the next turn!
+  if (allPlayers.length > 0) {
+    setTimeout(() => {
+      openWheelModal();
+    }, 450);
+  }
 }
 
 // Close button listener
@@ -813,4 +1185,6 @@ btnCloseQuestion.addEventListener('click', closeQuestionModal);
 questionModal.addEventListener('click', (e) => {
   if (e.target === questionModal) closeQuestionModal();
 });
+
+
 
