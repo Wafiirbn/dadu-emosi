@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dadu Emosi - Pedal Juara</title>
+  <meta name="description" content="Aplikasi Kocok Dadu Emosi interaktif untuk program Pedal Juara. Roll dadu 3D dan ekspresikan perasaanmu!">
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+  
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Local Stylesheet -->
+  <link rel="stylesheet" href="style.css?v=3">
+</head>
+<body>
+
+  <!-- Background decorative elements -->
+  <div class="bg-glow bg-glow-1"></div>
+  <div class="bg-glow bg-glow-2"></div>
+
+  <div class="app-container">
+    
+    <!-- Header Section -->
+    <header class="app-header">
+      <div class="brand-container">
+        <!-- SVG Logo mimicking Pedal Juara branding -->
+        <svg class="brand-logo" viewBox="0 0 100 100" width="50" height="50">
+          <!-- Open Book -->
+          <path d="M15 70 C 35 60, 50 65, 50 75 C 50 65, 65 60, 85 70 L 85 30 C 65 20, 50 25, 50 35 C 50 25, 35 20, 15 30 Z" fill="#ffffff" stroke="#0f5132" stroke-width="3" />
+          <path d="M50 35 L 50 75" stroke="#0f5132" stroke-width="2" />
+          <!-- Star/Sparkle -->
+          <polygon points="50,10 54,22 66,22 56,30 60,42 50,34 40,42 44,30 34,22 46,22" fill="#ffc107" stroke="#e0a800" stroke-width="1" />
+          <!-- Small figure -->
+          <circle cx="50" cy="50" r="6" fill="#dc3545" />
+          <path d="M44 62 C 44 55, 56 55, 56 62" stroke="#dc3545" stroke-width="3" fill="none" />
+        </svg>
+        <div class="brand-text">
+          <span class="brand-title-pedal">PEDAL</span>
+          <span class="brand-title-juara">JUARA</span>
+        </div>
+      </div>
+      
+      <div class="title-banner">
+        <h1 class="main-title">DADU EMOSI</h1>
+      </div>
+    </header>
+
+    <!-- Main Workspace Grid -->
+    <main class="main-content">
+      
+      <!-- Dice Showcase Column -->
+      <section class="dice-section">
+        <div class="dice-perspective">
+          <div class="dice-cube" id="diceCube">
+            <!-- Sisi 1 (Depan) - Bahagia -->
+            <div class="dice-face face-front" data-face="1">
+              <div class="face-content placeholder-face face-1">
+                <div class="face-emoji">😊</div>
+                <div class="face-label">Bahagia</div>
+                <div class="face-number">1</div>
+              </div>
+            </div>
+            <!-- Sisi 2 (Belakang) - Sedih -->
+            <div class="dice-face face-back" data-face="2">
+              <div class="face-content placeholder-face face-2">
+                <div class="face-emoji">😢</div>
+                <div class="face-label">Sedih</div>
+                <div class="face-number">2</div>
+              </div>
+            </div>
+            <!-- Sisi 3 (Atas) - Marah -->
+            <div class="dice-face face-top" data-face="3">
+              <div class="face-content placeholder-face face-3">
+                <div class="face-emoji">😡</div>
+                <div class="face-label">Marah</div>
+                <div class="face-number">3</div>
+              </div>
+            </div>
+            <!-- Sisi 4 (Bawah) - Takut/Gugup -->
+            <div class="dice-face face-bottom" data-face="4">
+              <div class="face-content placeholder-face face-4">
+                <div class="face-emoji">😰</div>
+                <div class="face-label">Takut/Gugup</div>
+                <div class="face-number">4</div>
+              </div>
+            </div>
+            <!-- Sisi 5 (Kiri) - Terkejut -->
+            <div class="dice-face face-left" data-face="5">
+              <div class="face-content placeholder-face face-5">
+                <div class="face-emoji">😲</div>
+                <div class="face-label">Terkejut</div>
+                <div class="face-number">5</div>
+              </div>
+            </div>
+            <!-- Sisi 6 (Kanan) - Mual/Menjijikkan -->
+            <div class="dice-face face-right" data-face="6">
+              <div class="face-content placeholder-face face-6">
+                <div class="face-emoji">🤢</div>
+                <div class="face-label">Mual/Menjijikkan</div>
+                <div class="face-number">6</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Shadow under the dice -->
+        <div class="dice-shadow" id="diceShadow"></div>
+      </section>
+
+      <!-- Panel Control Column -->
+      <section class="control-section">
+        
+        <!-- Result Cards Container -->
+        <div class="result-container card-glow" id="resultCard">
+          <div class="result-placeholder" id="resultPlaceholder">
+            <i class="fa-solid fa-dice dice-icon-pulse"></i>
+            <p>Tekan tombol <strong>Kocok</strong> untuk memulai!</p>
+          </div>
+          <div class="result-content hidden" id="resultContent">
+            <div class="result-header">
+              <span class="result-badge" id="resultBadge">Marah</span>
+            </div>
+            <div class="result-card-inner">
+              <div class="result-image-wrapper" id="resultImageWrapper">
+                <!-- Result Face Image or Placeholder Emoji will be rendered here -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Minimalist Action Buttons -->
+        <div class="action-buttons">
+          <button class="btn btn-roll" id="btnRoll" aria-label="Kocok Dadu">
+            <span class="btn-roll-shadow"></span>
+            <span class="btn-roll-edge"></span>
+            <span class="btn-roll-front">
+              <i class="fa-solid fa-rotate"></i> KOCOK DADU
+            </span>
+          </button>
+
+          <div class="btn-group-minor">
+            <button class="btn-minor" id="btnToggleSound" title="Aktifkan/Bisukan Suara" aria-label="Toggle Sound">
+              <i class="fa-solid fa-volume-high" id="soundIcon"></i>
+            </button>
+            <button class="btn-minor" id="btnOpenSettings" title="Unggah Desain Dadu" aria-label="Open Settings">
+              <i class="fa-solid fa-sliders"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Roll History (Sleek horizontal list) -->
+        <div class="history-container card-glow">
+          <h2 class="section-title"><i class="fa-solid fa-history"></i> Riwayat Kocokan</h2>
+          <div class="history-list" id="historyList">
+            <div class="history-empty">Belum ada riwayat kocokan</div>
+          </div>
+        </div>
+
+      </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+      <p>&copy; 2026 Pedal Juara. Dibuat dengan cinta untuk pembelajaran emosi.</p>
+    </footer>
+  </div>
+
+  <!-- Settings Modal for Customizing Face Designs -->
+  <div class="modal-overlay hidden" id="settingsModal">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h2 class="modal-title"><i class="fa-solid fa-cog"></i> Pengaturan Dadu</h2>
+        <button class="modal-close" id="btnCloseSettings" aria-label="Tutup Pengaturan">
+          <i class="fa-solid fa-times"></i>
+        </button>
+      </div>
+      
+      <div class="modal-body">
+        <div class="settings-intro">
+          <p>Unggah desain gambar Canva Anda untuk setiap sisi dadu (1-6). Format gambar yang didukung: PNG, JPG, JPEG, SVG.</p>
+        </div>
+        
+        <form class="uploader-grid" id="uploadForm">
+          <!-- Face Customizer items 1-6 -->
+          <div class="uploader-card">
+            <div class="uploader-header">
+              <span class="uploader-number">Sisi 1</span>
+              <span class="uploader-name">Bahagia</span>
+            </div>
+            <div class="upload-dropzone" data-face="1">
+              <input type="file" id="inputFace1" accept="image/*" class="file-input">
+              <div class="dropzone-preview" id="preview1">
+                <i class="fa-solid fa-cloud-arrow-up"></i>
+                <span>Pilih Gambar</span>
+              </div>
+            </div>
+            <button type="button" class="btn-reset-face" data-face="1">Reset</button>
+          </div>
+
+          <div class="uploader-card">
+            <div class="uploader-header">
+              <span class="uploader-number">Sisi 2</span>
+              <span class="uploader-name">Sedih</span>
+            </div>
+            <div class="upload-dropzone" data-face="2">
+              <input type="file" id="inputFace2" accept="image/*" class="file-input">
+              <div class="dropzone-preview" id="preview2">
+                <i class="fa-solid fa-cloud-arrow-up"></i>
+                <span>Pilih Gambar</span>
+              </div>
+            </div>
+            <button type="button" class="btn-reset-face" data-face="2">Reset</button>
+          </div>
+
+          <div class="uploader-card">
+            <div class="uploader-header">
+              <span class="uploader-number">Sisi 3</span>
+              <span class="uploader-name">Marah</span>
+            </div>
+            <div class="upload-dropzone" data-face="3">
+              <input type="file" id="inputFace3" accept="image/*" class="file-input">
+              <div class="dropzone-preview" id="preview3">
+                <i class="fa-solid fa-cloud-arrow-up"></i>
+                <span>Pilih Gambar</span>
+              </div>
+            </div>
+            <button type="button" class="btn-reset-face" data-face="3">Reset</button>
+          </div>
+
+          <div class="uploader-card">
+            <div class="uploader-header">
+              <span class="uploader-number">Sisi 4</span>
+              <span class="uploader-name">Takut/Gugup</span>
+            </div>
+            <div class="upload-dropzone" data-face="4">
+              <input type="file" id="inputFace4" accept="image/*" class="file-input">
+              <div class="dropzone-preview" id="preview4">
+                <i class="fa-solid fa-cloud-arrow-up"></i>
+                <span>Pilih Gambar</span>
+              </div>
+            </div>
+            <button type="button" class="btn-reset-face" data-face="4">Reset</button>
+          </div>
+
+          <div class="uploader-card">
+            <div class="uploader-header">
+              <span class="uploader-number">Sisi 5</span>
+              <span class="uploader-name">Terkejut</span>
+            </div>
+            <div class="upload-dropzone" data-face="5">
+              <input type="file" id="inputFace5" accept="image/*" class="file-input">
+              <div class="dropzone-preview" id="preview5">
+                <i class="fa-solid fa-cloud-arrow-up"></i>
+                <span>Pilih Gambar</span>
+              </div>
+            </div>
+            <button type="button" class="btn-reset-face" data-face="5">Reset</button>
+          </div>
+
+          <div class="uploader-card">
+            <div class="uploader-header">
+              <span class="uploader-number">Sisi 6</span>
+              <span class="uploader-name">Mual/Menjijikkan</span>
+            </div>
+            <div class="upload-dropzone" data-face="6">
+              <input type="file" id="inputFace6" accept="image/*" class="file-input">
+              <div class="dropzone-preview" id="preview6">
+                <i class="fa-solid fa-cloud-arrow-up"></i>
+                <span>Pilih Gambar</span>
+              </div>
+            </div>
+            <button type="button" class="btn-reset-face" data-face="6">Reset</button>
+          </div>
+        </form>
+
+        <div class="modal-footer">
+          <button class="btn btn-secondary" id="btnResetAll">Reset Semua</button>
+          <button class="btn btn-primary" id="btnSaveSettings">Tutup & Simpan</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Local Script -->
+  <script src="script.js?v=3"></script>
+</body>
+</html>
