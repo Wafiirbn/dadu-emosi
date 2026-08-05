@@ -203,10 +203,12 @@ function drawWheel() {
     ctx.stroke();
 
     // Draw label
+    const midAngle = startAngle + arc / 2;
+    const normAngle = ((midAngle % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+
     ctx.save();
     ctx.translate(cx, cy);
-    ctx.rotate(startAngle + arc / 2);
-    ctx.textAlign = 'right';
+    ctx.rotate(midAngle);
     ctx.fillStyle = '#ffffff';
     ctx.font = `bold ${Math.min(14, Math.floor(R / Math.max(N, 2) * 1.5))}px Fredoka, Outfit, sans-serif`;
     ctx.shadowColor = 'rgba(0,0,0,0.6)';
@@ -216,7 +218,15 @@ function drawWheel() {
     const label = wheelNames[i].length > maxChars
       ? wheelNames[i].slice(0, maxChars) + '…'
       : wheelNames[i];
-    ctx.fillText(label, R - 14, 5);
+
+    if (normAngle > Math.PI / 2 && normAngle < (3 * Math.PI) / 2) {
+      ctx.rotate(Math.PI);
+      ctx.textAlign = 'left';
+      ctx.fillText(label, -(R - 14), 4);
+    } else {
+      ctx.textAlign = 'right';
+      ctx.fillText(label, R - 14, 4);
+    }
     ctx.restore();
   }
 
