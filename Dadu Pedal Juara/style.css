@@ -28,6 +28,13 @@
   --font-body: 'Outfit', sans-serif;
 }
 
+html {
+  width: 100%;
+  height: 100%;
+  overflow-x: hidden;
+  background-color: var(--bg-dark);
+}
+
 * {
   box-sizing: border-box;
   margin: 0;
@@ -38,7 +45,11 @@ body {
   font-family: var(--font-body);
   background-color: var(--bg-dark);
   color: #f8f9fa;
+  width: 100%;
   min-height: 100vh;
+  min-height: 100dvh;
+  margin: 0;
+  padding: 0;
   position: relative;
   overflow-x: hidden;
   display: flex;
@@ -48,7 +59,7 @@ body {
 
 /* Background glows */
 .bg-glow {
-  position: absolute;
+  position: fixed;
   border-radius: 50%;
   filter: blur(120px);
   z-index: -1;
@@ -57,30 +68,35 @@ body {
 }
 
 .bg-glow-1 {
-  width: 500px;
-  height: 500px;
+  width: min(500px, 80vw);
+  height: min(500px, 80vw);
   background-color: var(--primary-green);
   top: -100px;
   left: -100px;
 }
 
 .bg-glow-2 {
-  width: 600px;
-  height: 600px;
+  width: min(600px, 90vw);
+  height: min(600px, 90vw);
   background-color: var(--purple-banner);
   bottom: -150px;
   right: -100px;
 }
 
-/* Main Layout */
+/* Main Layout Wrapper */
 .app-container {
   width: 100%;
   max-width: 1200px;
-  padding: 24px;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: 1.5rem 2rem 5.5rem 2rem;
+  margin: 0 auto;
   display: flex;
   flex-direction: column;
-  min-height: 95vh;
-  gap: 24px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  box-sizing: border-box;
 }
 
 /* Header styling */
@@ -88,16 +104,17 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 16px;
+  gap: 0.75rem;
   text-align: center;
+  width: 100%;
 }
 
 .brand-container {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 0.5rem;
   background: rgba(255, 255, 255, 0.05);
-  padding: 8px 20px;
+  padding: 0.4rem 1.25rem;
   border-radius: 50px;
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -105,7 +122,7 @@ body {
 }
 
 .brand-logo-img {
-  height: 48px;
+  height: 44px;
   width: auto;
   display: block;
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
@@ -113,34 +130,53 @@ body {
 
 .title-banner {
   background: linear-gradient(135deg, var(--purple-banner) 0%, #4c1d95 100%);
-  padding: 10px 48px;
+  padding: 0.5rem 2.5rem;
   border-radius: 100px;
-  border: 3px solid #f8f9fa;
+  border: 2.5px solid #f8f9fa;
   box-shadow: 0 8px 24px rgba(113, 44, 249, 0.3), inset 0 2px 0 rgba(255, 255, 255, 0.2);
   transform: rotate(-1deg);
+  max-width: 100%;
 }
 
 .main-title {
   font-family: var(--font-title);
-  font-size: 2.2rem;
+  font-size: clamp(1.6rem, 4vw, 2.2rem);
   font-weight: 700;
-  letter-spacing: 2px;
+  letter-spacing: 1.5px;
   color: #ffffff;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
 }
 
-/* Content Layout split */
+/* Content Layout: 2 Columns on Desktop */
 .main-content {
+  width: 100%;
   display: grid;
   grid-template-columns: 1fr 1.2fr;
-  gap: 40px;
-  flex: 1;
+  gap: 2.5rem;
   align-items: center;
+  flex: 1;
 }
 
-/* Prevent grid children from overflowing their column */
+/* Responsive Mobile Layout (≤ 900px): Single Column Stacked */
+@media (max-width: 900px) {
+  .app-container {
+    max-width: 480px;
+    padding: 1.25rem 1rem 6rem 1rem;
+    gap: 1.25rem;
+  }
+
+  .main-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.25rem;
+  }
+}
+
+/* Prevent overflow */
 .dice-section,
 .control-section {
+  width: 100%;
   min-width: 0;
 }
 
@@ -791,20 +827,16 @@ body {
 /* Modal Overlay & Container */
 .modal-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  inset: 0;
   width: 100%;
   height: 100%;
   margin: 0;
-  padding: 12px;
+  padding: 16px 12px;
   box-sizing: border-box;
-  background: rgba(0, 0, 0, 0.7);
+  background: rgba(0, 0, 0, 0.75);
   backdrop-filter: blur(8px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: grid;
+  place-items: center;
   z-index: 1000;
   opacity: 1;
   overflow-y: auto;
@@ -819,8 +851,9 @@ body {
 }
 
 .modal-container {
-  width: 90%;
-  max-width: 720px;
+  width: min(92%, 680px);
+  margin: auto;
+  box-sizing: border-box;
   background: #11251c;
   border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 24px;
@@ -1353,8 +1386,8 @@ body {
 }
 
 @keyframes qmodalEnter {
-  from { transform: scale(0.7) translateY(40px); opacity: 0; }
-  to   { transform: scale(1) translateY(0);      opacity: 1; }
+  from { transform: translateY(15px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
 }
 
 /* Glowing top border accent */
@@ -1610,17 +1643,13 @@ body {
 
 .setup-screen {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  inset: 0;
   width: 100%;
   height: 100%;
   z-index: 2000;
   background: var(--bg-dark);
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
+  display: grid;
+  place-items: center;
   padding: 12px 10px;
   overflow-y: auto;
   overflow-x: hidden;
@@ -1628,9 +1657,8 @@ body {
 }
 
 .setup-card {
-  width: 100%;
-  max-width: 440px;
-  margin: auto 0;
+  width: min(92%, 400px);
+  margin: auto;
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 24px;
@@ -1642,12 +1670,12 @@ body {
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6), 0 0 40px rgba(113, 44, 249, 0.15);
   backdrop-filter: blur(20px);
   box-sizing: border-box;
-  animation: setupCardEnter 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.2) forwards;
+  animation: setupCardEnter 0.4s ease forwards;
 }
 
 @keyframes setupCardEnter {
-  from { transform: scale(0.9) translateY(20px); opacity: 0; }
-  to   { transform: scale(1) translateY(0);      opacity: 1; }
+  from { transform: translateY(15px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
 }
 
 .setup-logo {
@@ -1815,7 +1843,10 @@ body {
   }
 
   .setup-card {
-    padding: 16px 10px;
+    width: 94%;
+    max-width: 350px;
+    margin: auto;
+    padding: 16px 12px;
     gap: 10px;
     border-radius: 18px;
   }
@@ -1847,15 +1878,31 @@ body {
   }
 }
 
+@media (max-width: 400px) {
+  .setup-card {
+    padding: 14px 10px;
+    gap: 8px;
+  }
+
+  .setup-main-title {
+    font-size: 1.15rem;
+  }
+
+  .player-name-input {
+    padding: 6px 8px;
+    font-size: 0.8rem;
+  }
+}
+
 /* =============================================
    WHEEL OF NAMES MODAL
    ============================================= */
 
 .wheel-modal-container {
   position: relative;
-  width: 92%;
-  max-width: 380px;
+  width: min(92%, 360px);
   max-height: 90vh;
+  margin: auto;
   overflow-y: auto;
   overflow-x: hidden;
   background: #11251c;
@@ -1868,7 +1915,7 @@ body {
   gap: 12px;
   box-shadow: 0 24px 60px rgba(0,0,0,0.6), 0 0 40px rgba(113, 44, 249, 0.2);
   box-sizing: border-box;
-  animation: qmodalEnter 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.3) forwards;
+  animation: qmodalEnter 0.4s ease forwards;
 }
 
 .wheel-modal-header {
@@ -2013,7 +2060,8 @@ body {
 
 .btn-spin-wheel {
   width: 100%;
-  padding: 13px 20px;
+  min-height: 48px;
+  padding: 12px 20px;
   background: linear-gradient(135deg, var(--purple-banner), #4c1d95);
   border: none;
   border-radius: 14px;
@@ -2028,6 +2076,7 @@ body {
   gap: 8px;
   box-shadow: 0 6px 20px rgba(113, 44, 249, 0.4), inset 0 2px 0 rgba(255,255,255,0.2);
   transition: transform 0.2s ease, filter 0.2s ease;
+  box-sizing: border-box;
 }
 
 .btn-spin-wheel:hover:not(:disabled) {
@@ -2043,20 +2092,22 @@ body {
 
 .btn-skip-wheel {
   width: 100%;
-  padding: 9px 20px;
-  background: transparent;
-  border: 1.5px solid rgba(255, 255, 255, 0.2);
+  min-height: 44px;
+  padding: 10px 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1.5px solid rgba(255, 255, 255, 0.15);
   border-radius: 12px;
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(255, 255, 255, 0.7);
   font-family: var(--font-title);
-  font-size: 0.85rem;
+  font-size: 0.88rem;
   font-weight: 600;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
-  transition: all 0.2s ease;
+  transition: background 0.2s ease, color 0.2s ease;
+  box-sizing: border-box;
 }
 
 .btn-skip-wheel:hover {
@@ -2190,6 +2241,85 @@ body {
   .cpb-next-btn {
     font-size: 0.75rem;
     padding: 4px 10px;
+  }
+}
+
+/* =============================================
+   RESPONSIVE BREAKPOINTS (iPad & Desktop)
+   ============================================= */
+
+/* iPad & Tablet Portrait / Landscape (min-width: 768px) */
+@media (min-width: 768px) {
+  :root {
+    --face-size: 240px;
+    --face-translate: 120px;
+  }
+
+  .setup-card,
+  .wheel-modal-container,
+  .question-modal-container,
+  .modal-container {
+    max-width: 500px;
+    padding: 2.25rem 1.75rem;
+    border-radius: 1.75rem;
+  }
+
+  .wheel-wrapper {
+    width: 280px;
+    height: 280px;
+  }
+
+  #wheelCanvas {
+    width: 280px !important;
+    height: 280px !important;
+  }
+
+  .dice-section {
+    height: 400px;
+  }
+
+  .btn-start-game,
+  .btn-spin-wheel,
+  .qmodal-close-btn {
+    min-height: 52px;
+    font-size: 1.1rem;
+  }
+}
+
+/* iPad Landscape & Desktop Widescreen (min-width: 1024px) */
+@media (min-width: 1024px) {
+  :root {
+    --face-size: 250px;
+    --face-translate: 125px;
+  }
+
+  .app-container {
+    max-width: 1150px;
+    padding: 2rem 2.5rem 6rem 2.5rem;
+    gap: 2rem;
+  }
+
+  .setup-card,
+  .wheel-modal-container,
+  .question-modal-container,
+  .modal-container {
+    max-width: 500px;
+    padding: 2.25rem 2rem;
+    border-radius: 2rem;
+  }
+
+  .wheel-wrapper {
+    width: 300px;
+    height: 300px;
+  }
+
+  #wheelCanvas {
+    width: 300px !important;
+    height: 300px !important;
+  }
+
+  .dice-section {
+    height: 420px;
   }
 }
 
