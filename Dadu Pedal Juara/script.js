@@ -374,7 +374,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initIndexedDB();
   setupEventListeners();
   loadHistoryFromLocalStorage();
-  
+
   // Make sure the dice floats on start
   diceCube.classList.add('idle-float');
 });
@@ -398,22 +398,22 @@ function playBounceSound(pitch = 1, volume = 0.4) {
   // Create nodes
   const osc = audioCtx.createOscillator();
   const gainNode = audioCtx.createGain();
-  
+
   osc.connect(gainNode);
   gainNode.connect(audioCtx.destination);
-  
+
   // Audio settings: short clicky tap
   const now = audioCtx.currentTime;
   osc.type = 'triangle';
-  
+
   // Frequency sweep
   osc.frequency.setValueAtTime(450 * pitch, now);
   osc.frequency.exponentialRampToValueAtTime(80 * pitch, now + 0.08);
-  
+
   // Volume envelope
   gainNode.gain.setValueAtTime(volume, now);
   gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
-  
+
   osc.start(now);
   osc.stop(now + 0.09);
 }
@@ -425,19 +425,19 @@ function playLandingSound() {
   if (!audioCtx) return;
 
   const now = audioCtx.currentTime;
-  
+
   // Main thump
   const osc1 = audioCtx.createOscillator();
   const gain1 = audioCtx.createGain();
   osc1.connect(gain1);
   gain1.connect(audioCtx.destination);
-  
+
   osc1.type = 'sine';
   osc1.frequency.setValueAtTime(180, now);
   osc1.frequency.linearRampToValueAtTime(40, now + 0.15);
   gain1.gain.setValueAtTime(0.6, now);
   gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
-  
+
   osc1.start(now);
   osc1.stop(now + 0.16);
 
@@ -446,13 +446,13 @@ function playLandingSound() {
   const gain2 = audioCtx.createGain();
   osc2.connect(gain2);
   gain2.connect(audioCtx.destination);
-  
+
   osc2.type = 'triangle';
   osc2.frequency.setValueAtTime(350, now);
   osc2.frequency.linearRampToValueAtTime(120, now + 0.05);
   gain2.gain.setValueAtTime(0.3, now);
   gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
-  
+
   osc2.start(now);
   osc2.stop(now + 0.06);
 }
@@ -462,24 +462,24 @@ function queueRollSounds() {
   const duration = 2500; // Roll animation duration matches CSS
   const startInterval = 80;
   const maxInterval = 450;
-  
+
   let currentDelay = 0;
   let interval = startInterval;
-  
+
   function triggerNextBounce() {
     if (!isRolling) return;
-    
+
     // Play bounce sound
     const progress = currentDelay / duration;
     // Lower volume and pitch as dice slows down
     const volume = 0.5 * (1 - progress * 0.5);
     const pitch = 1.2 - progress * 0.4;
     playBounceSound(pitch, volume);
-    
+
     // Calculate next delay using exponential growth to simulate deceleration
     interval = startInterval + Math.pow(progress, 2.5) * (maxInterval - startInterval);
     currentDelay += interval;
-    
+
     if (currentDelay < duration - 200) {
       setTimeout(triggerNextBounce, interval);
     } else {
@@ -487,26 +487,26 @@ function queueRollSounds() {
       setTimeout(playLandingSound, duration - currentDelay);
     }
   }
-  
+
   triggerNextBounce();
 }
 
 // --- INDEXEDDB SETUP FOR PERSISTENCE ---
 function initIndexedDB() {
   const request = indexedDB.open(DB_NAME, DB_VERSION);
-  
+
   request.onupgradeneeded = (e) => {
     const dbInstance = e.target.result;
     if (!dbInstance.objectStoreNames.contains(STORE_NAME)) {
       dbInstance.createObjectStore(STORE_NAME, { keyPath: 'id' });
     }
   };
-  
+
   request.onsuccess = (e) => {
     db = e.target.result;
     loadCustomFaces();
   };
-  
+
   request.onerror = (e) => {
     console.error('IndexedDB error:', e.target.error);
     // Fallback: check assets folder directly
@@ -517,20 +517,20 @@ function initIndexedDB() {
 // Load custom faces from DB
 function loadCustomFaces() {
   if (!db) return;
-  
+
   const transaction = db.transaction([STORE_NAME], 'readonly');
   const store = transaction.objectStore(STORE_NAME);
   const request = store.getAll();
-  
+
   request.onsuccess = () => {
     const records = request.result;
     const loadedFaces = new Set();
-    
+
     records.forEach(record => {
       applyCustomFace(record.id, record.dataUrl);
       loadedFaces.add(record.id);
     });
-    
+
     // For faces not saved in DB, load local file if exists, otherwise stay placeholder
     for (let i = 1; i <= 6; i++) {
       if (!loadedFaces.has(i)) {
@@ -552,11 +552,11 @@ function checkLocalAsset(faceNum) {
   const imgUrl = `./assets/face${faceNum}.png`;
   const tempImg = new Image();
   tempImg.src = imgUrl;
-  
+
   tempImg.onload = () => {
     applyCustomFace(faceNum, imgUrl, false); // apply without saving to db
   };
-  
+
   tempImg.onerror = () => {
     // If PNG fails, try JPEG as well
     const jpgUrl = `./assets/face${faceNum}.jpg`;
@@ -573,7 +573,7 @@ function applyCustomFace(faceId, dataUrl, updatePreview = true) {
   const faceNum = parseInt(faceId);
   const faceElement = document.querySelector(`.dice-face[data-face="${faceNum}"]`);
   if (!faceElement) return;
-  
+
   // Update Dice Face
   const content = faceElement.querySelector('.face-content');
   content.className = `face-content face-${faceNum}`;
@@ -581,7 +581,7 @@ function applyCustomFace(faceId, dataUrl, updatePreview = true) {
     <img src="${dataUrl}" class="face-custom-img" alt="Sisi ${faceNum} - ${EMOTIONS[faceNum].name}">
     <div class="face-number">${faceNum}</div>
   `;
-  
+
   // Update Settings Uploader Preview
   if (updatePreview) {
     const previewDiv = document.getElementById(`preview${faceNum}`);
@@ -594,7 +594,7 @@ function applyCustomFace(faceId, dataUrl, updatePreview = true) {
 // Save image to IndexedDB
 function saveCustomFaceToDB(faceNum, dataUrl) {
   if (!db) return;
-  
+
   const transaction = db.transaction([STORE_NAME], 'readwrite');
   const store = transaction.objectStore(STORE_NAME);
   store.put({ id: faceNum, dataUrl: dataUrl });
@@ -603,7 +603,7 @@ function saveCustomFaceToDB(faceNum, dataUrl) {
 // Delete image from IndexedDB
 function deleteCustomFaceFromDB(faceNum) {
   if (!db) return;
-  
+
   const transaction = db.transaction([STORE_NAME], 'readwrite');
   const store = transaction.objectStore(STORE_NAME);
   store.delete(faceNum);
@@ -613,7 +613,7 @@ function deleteCustomFaceFromDB(faceNum) {
 function resetFaceToPlaceholder(faceNum) {
   const faceElement = document.querySelector(`.dice-face[data-face="${faceNum}"]`);
   if (!faceElement) return;
-  
+
   // Reset dice face HTML
   const emotion = EMOTIONS[faceNum];
   const content = faceElement.querySelector('.face-content');
@@ -623,7 +623,7 @@ function resetFaceToPlaceholder(faceNum) {
     <div class="face-label">${emotion.name}</div>
     <div class="face-number">${faceNum}</div>
   `;
-  
+
   // Reset Preview
   const previewDiv = document.getElementById(`preview${faceNum}`);
   if (previewDiv) {
@@ -632,7 +632,7 @@ function resetFaceToPlaceholder(faceNum) {
       <span>Pilih Gambar</span>
     `;
   }
-  
+
   // Delete from DB
   deleteCustomFaceFromDB(faceNum);
 }
@@ -640,27 +640,27 @@ function resetFaceToPlaceholder(faceNum) {
 // --- CORE ROLLING LOGIC ---
 function rollDice() {
   if (isRolling) return;
-  
+
   isRolling = true;
   btnRoll.disabled = true;
-  
+
   // Hide previous result card with fade
   resultCard.classList.remove('card-glow');
-  
+
   // Stop floating idle animation
   diceCube.classList.remove('idle-float');
-  
+
   // Add rolling styles to shadow
   diceShadow.classList.add('rolling');
-  
+
   // Generate random target face (1-6)
   const rolledFace = Math.floor(Math.random() * 6) + 1;
   const targetRotation = FACE_ROTATIONS[rolledFace];
-  
+
   // Multi-spin rotation calculation (adds 4-7 spins so it's dynamic and organic)
-  const spinsX = (Math.floor(Math.random() * 3) + 4) * 360; 
+  const spinsX = (Math.floor(Math.random() * 3) + 4) * 360;
   const spinsY = (Math.floor(Math.random() * 3) + 4) * 360;
-  
+
   // Calculate end angles
   currentRotX = currentRotX + spinsX + targetRotation.x - (currentRotX % 360);
   currentRotY = currentRotY + spinsY + targetRotation.y - (currentRotY % 360);
@@ -677,20 +677,20 @@ function rollDice() {
     diceCube.style.transition = 'transform 2.5s cubic-bezier(0.2, 0.85, 0.4, 1.02)';
     diceCube.style.transform = `rotateX(${currentRotX}deg) rotateY(${currentRotY}deg)`;
   });
-  
+
   // Synthesize sound timing
   queueRollSounds();
-  
+
   // Finish roll
   setTimeout(() => {
     // Release shadows and enable controls
     diceShadow.classList.remove('rolling');
     isRolling = false;
     btnRoll.disabled = false;
-    
+
     // Freeze at landed position (no transition)
     diceCube.style.transition = 'none';
-    
+
     // Save history and update UI
     saveRollToHistory(rolledFace);
     displayResult(rolledFace);
@@ -701,21 +701,21 @@ function rollDice() {
 // Display the rolled emotion in the result card
 function displayResult(faceNum) {
   const emotion = EMOTIONS[faceNum];
-  
+
   // Setup Badge Style
   resultBadge.textContent = emotion.name;
   resultBadge.style.backgroundColor = emotion.color;
-  
+
   // Select Image or Emoji for result box
   const faceElement = document.querySelector(`.dice-face[data-face="${faceNum}"]`);
   const customImg = faceElement.querySelector('.face-custom-img');
-  
+
   if (customImg) {
     resultImageWrapper.innerHTML = `<img src="${customImg.src}" alt="${emotion.name}">`;
   } else {
     resultImageWrapper.innerHTML = `<div class="result-placeholder-emoji" style="color: ${emotion.color}">${emotion.emoji}</div>`;
   }
-  
+
   // Toggle states
   resultPlaceholder.classList.add('hidden');
   resultContent.classList.remove('hidden');
@@ -736,30 +736,30 @@ function saveRollToHistory(faceNum) {
     color: emotion.color,
     timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
   };
-  
+
   // Prepend to list
   diceRollHistory.unshift(rollData);
-  
+
   // Cap history at 8 items
   if (diceRollHistory.length > 8) {
     diceRollHistory.pop();
   }
-  
+
   // Save to LocalStorage
   localStorage.setItem('diceRollHistory', JSON.stringify(diceRollHistory));
-  
+
   // Render History
   renderHistory();
 }
 
 function renderHistory() {
   historyList.innerHTML = '';
-  
+
   if (diceRollHistory.length === 0) {
     historyList.innerHTML = '<div class="history-empty">Belum ada riwayat kocokan</div>';
     return;
   }
-  
+
   diceRollHistory.forEach(item => {
     const itemDiv = document.createElement('div');
     // Map theme classes dynamically (sanitize name by replacing / with -)
@@ -790,10 +790,10 @@ function loadHistoryFromLocalStorage() {
 function setupEventListeners() {
   // Roll Dice Button click
   btnRoll.addEventListener('click', rollDice);
-  
+
   // Click on the physical cube container rolls it too!
   diceCube.addEventListener('click', rollDice);
-  
+
   // Sound Toggle
   btnToggleSound.addEventListener('click', () => {
     soundEnabled = !soundEnabled;
@@ -841,23 +841,23 @@ function setupEventListeners() {
   document.addEventListener('fullscreenchange', updateFullscreenUI);
   document.addEventListener('webkitfullscreenchange', updateFullscreenUI);
   document.addEventListener('MSFullscreenChange', updateFullscreenUI);
-  
+
   // Modal toggle actions
   btnOpenSettings.addEventListener('click', () => {
     settingsModal.classList.remove('hidden');
   });
-  
+
   btnCloseSettings.addEventListener('click', () => {
     settingsModal.classList.add('hidden');
     // Recalculate idle animation floating
     diceCube.classList.add('idle-float');
   });
-  
+
   btnSaveSettings.addEventListener('click', () => {
     settingsModal.classList.add('hidden');
     diceCube.classList.add('idle-float');
   });
-  
+
   // Close modal when clicking outside
   settingsModal.addEventListener('click', (e) => {
     if (e.target === settingsModal) {
@@ -874,7 +874,7 @@ function setupEventListeners() {
       }
     }
   });
-  
+
   // Handle Reset buttons on individual uploader cards
   document.querySelectorAll('.btn-reset-face').forEach(btn => {
     btn.addEventListener('click', (e) => {
@@ -882,34 +882,34 @@ function setupEventListeners() {
       resetFaceToPlaceholder(faceNum);
     });
   });
-  
+
   // Drag and Drop dropzone styling & file selection
   const dropzones = document.querySelectorAll('.upload-dropzone');
-  
+
   dropzones.forEach(zone => {
     const faceNum = parseInt(zone.dataset.face);
     const input = zone.querySelector('.file-input');
-    
+
     // Trigger input on click if not dragging
     zone.addEventListener('click', () => {
       input.click();
     });
-    
+
     // File change handler
     input.addEventListener('change', (e) => {
       handleFiles(e.target.files, faceNum);
     });
-    
+
     // Drag-over styling
     zone.addEventListener('dragover', (e) => {
       e.preventDefault();
       zone.classList.add('dragover');
     });
-    
+
     zone.addEventListener('dragleave', () => {
       zone.classList.remove('dragover');
     });
-    
+
     zone.addEventListener('drop', (e) => {
       e.preventDefault();
       zone.classList.remove('dragover');
@@ -923,13 +923,13 @@ function setupEventListeners() {
 // Convert files to Data URL and save
 function handleFiles(files, faceNum) {
   if (files.length === 0) return;
-  
+
   const file = files[0];
   if (!file.type.startsWith('image/')) {
     alert('Format file tidak valid. Harap pilih gambar.');
     return;
   }
-  
+
   const reader = new FileReader();
   reader.onload = (e) => {
     const dataUrl = e.target.result;
@@ -946,57 +946,57 @@ function handleFiles(files, faceNum) {
 // Bank of questions per face number (matches EMOTIONS 1-6)
 const QUESTION_BANK = {
   1: [
-    "Momen apa yang paling bikin kamu bahagia pas jualan di bazar kemarin?",
-    "Kekuatan diri apa yang paling kamu banggain dari diri kamu selama ikut program Pedal Juara ini?",
-    "Siapa kawan di kelompok yang paling jago bikin suasana jadi seru pas kita lagi capek ngolah sampah?",
-    "Pujian atau ucapan apa dari orang lain yang paling nempel di hati kamu selama ikut program ini?",
-    "Kalau inget-inget lagi, bagian mana dari proses bikin aksesoris yang paling kamu nikmatin?"
+    "Momen apa yang paling bikin kamu bahagia pas jualan di masa kuliah?",
+    "Karakter diri apa yang paling kamu banggain dari diri kamu?",
+    "Kapan terakhir kali kamu ketawa sampai sakit perut?",
+    "Pujian atau ucapan apa dari orang lain yang paling nempel di hati kamu selama ini?",
+    "Apa kegiatan yang paling kamu suka lakukan bersama teman?"
   ],
   2: [
-    "Ada gak momen yang bikin kamu sedih atau kecewa pas produk yang kamu buat susah payah ternyata gak laku atau rusak?",
-    "Apa yang paling bakal kamu kangenin kalau nanti program Pedal Juara ini udah selesai?",
-    "Pernah gak ngerasa sedih waktu udah kerja keras di program ini tapi hasilnya belum sesuai harapan? Gimana kamu bangkit lagi?",
-    "Ada gak momen kamu ngerasa sendirian pas lagi ngerjain tugas kelompok?",
-    "Kapan terakhir kali kamu ngerasa pengen nyerah aja pas ikut kegiatan ini, terus apa yang bikin kamu lanjut lagi?"
+    "Kapan terakhir kali kamu merasa sedih?",
+    "Apa yang biasanya kamu lakukan kalau sedang sedih?",
+    "Pernah nggak kamu merasa kehilangan sesuatu yang kamu sayang?",
+    "Siapa orang yang biasanya kamu cari saat sedang sedih?",
+    "Kalau rasa sedihmu bisa bicara, kira-kira dia mau bilang apa?"
   ],
   3: [
-    "Jujur deh, momen apa yang paling bikin kamu darah tinggi pas lagi kerja kelompok atau pas bazar?",
-    "Gimana cara kamu nahan diri biar gak marah-marah pas pembeli nawar harga terlalu murah atau temen gak mau bantu?",
+    "Hal apa yang paling gampang bikin kamu kesal?",
+    "Apa yang biasanya kamu lakukan saat sedang marah?",
     "Apa yang paling bikin kamu geram pas liat orang buang sampah sembarangan di sekolah kita?",
-    "Pernah gak kamu ngerasa kesel sama diri sendiri karena ngerasa kerjaanmu belum maksimal?",
-    "Kalau ada temen yang gak adil bagi tugas di kelompok, apa yang biasanya kamu lakuin?"
+    "Pernah nggak kamu marah sama teman? Kenapa?",
+    "Kalau kamu bisa mengubah satu hal yang bikin kamu kesal, apa yang mau kamu ubah?"
   ],
   4: [
-    "Pas pertama kali mau nawarin aksesoris ke orang asing di bazar, apa sih ketakutan terbesar kamu?",
+    "Apa hal yang paling kamu takuti?",
     "Ada gak rasa takut pas mikirin impian kamu ke depan? Ceritain dikit dong.",
-    "Apa ketakutan kamu kalau sampah plastik di dunia ini makin banyak dan gak ada yang peduli lagi?",
-    "Pernah gak takut kalau usaha yang udah kamu bangun bareng kelompok ternyata gagal?",
-    "Ketakutan apa yang paling sering muncul pas kamu harus tampil atau ngomong di depan orang banyak?"
+    "Pernah nggak kamu takut mencoba sesuatu yang baru?",
+    "Kalau kamu sedang takut, apa yang biasanya kamu lakukan?",
+    "Kalau kamu bisa menghilangkan satu rasa takutmu, kamu ingin menghilangkan takut apa?"
   ],
   5: [
-    "Momen apa yang paling bikin kamu kaget selama ikut program Pedal Juara ini?",
-    "Pernah gak nemu bakat atau kemampuan diri sendiri yang ternyata gak kamu sangka-sangka?",
-    "Reaksi pembeli seperti apa yang paling bikin kamu kaget pas lagi jualan di bazar?",
-    "Ada gak hal tentang sampah atau daur ulang yang bikin kamu kaget waktu pertama kali tau?",
-    "Kejutan apa dari temen kelompok kamu yang paling nempel di ingatan, entah itu kejutan baik atau bikin geleng-geleng kepala?"
+    "Kapan terakhir kali kamu merasa kaget banget?",
+    "Apa hal paling mengejutkan yang pernah kamu alami?",
+    "Pernah nggak kamu dikagetin sama teman? Gimana reaksimu?",
+    "Kalau tiba-tiba dapat hadiah, kamu bakal ngapain?",
+    "Apa kejutan yang paling ingin kamu dapatkan?"
   ],
   6: [
-    "Pas pertama kali pegang tutup botol kotor atau sampah plastik, ada rasa risih gak? Gimana cara kamu ngalahin rasa itu?",
-    "Sifat temen atau sikap pembeli kayak gimana yang paling bikin kamu gak nyaman selama kegiatan?",
-    "Kebiasaan apa dari diri sendiri yang paling pengen kamu ubah biar kerja kelompok makin lancar?",
-    "Ada gak momen kamu ngerasa gak sreg sama cara kerja atau keputusan kelompok, tapi kamu diemin aja?",
-    "Hal kecil apa yang sering bikin kamu males duluan pas mulai kerja kelompok?"
+    "Apa makanan yang paling bikin kamu jijik?",
+    "Pernah nggak kamu melihat sesuatu yang bikin langsung pengen menjauh?",
+    "Apa bau yang paling nggak kamu suka?",
+    "Kalau temanmu makan sesuatu yang menurutmu jijik, kamu bakal ngapain?",
+    "Menurutmu, apa hal paling menjijikkan yang pernah kamu lihat?"
   ]
 };
 
 // DOM references for question popup
-const questionModal   = document.getElementById('questionModal');
+const questionModal = document.getElementById('questionModal');
 const questionModalBox = document.getElementById('questionModalBox');
-const qmodalEmoji     = document.getElementById('qmodalEmoji');
-const qmodalBadge     = document.getElementById('qmodalBadge');
-const slotDrum        = document.getElementById('slotDrum');
-const slotText        = document.getElementById('slotText');
-const starBurst       = document.getElementById('starBurst');
+const qmodalEmoji = document.getElementById('qmodalEmoji');
+const qmodalBadge = document.getElementById('qmodalBadge');
+const slotDrum = document.getElementById('slotDrum');
+const slotText = document.getElementById('slotText');
+const starBurst = document.getElementById('starBurst');
 const btnCloseQuestion = document.getElementById('btnCloseQuestion');
 
 // Slot machine timer handle (so we can cancel if needed)
@@ -1004,7 +1004,7 @@ let slotTimer = null;
 
 // Open popup and run slot machine for a given face number
 function showQuestionPopup(faceNum) {
-  const emotion   = EMOTIONS[faceNum];
+  const emotion = EMOTIONS[faceNum];
   const questions = QUESTION_BANK[faceNum];
 
   // Pick the final question randomly from the bank
@@ -1050,7 +1050,7 @@ function runSlotMachine(faceNum, finalQuestion) {
   // Timing profile: starts fast, slows exponentially
   // Each entry = [intervalMs, count] — how many frames at that speed
   const stages = [
-    [60,  8],   // Blazing fast
+    [60, 8],   // Blazing fast
     [100, 6],   // Fast
     [160, 5],   // Medium
     [240, 4],   // Slowing
@@ -1114,11 +1114,11 @@ function spawnStars(faceNum) {
 
     // Random launch direction
     const angle = (360 / count) * i + (Math.random() * 30 - 15);
-    const dist  = 60 + Math.random() * 80;
-    const tx    = Math.round(Math.cos((angle * Math.PI) / 180) * dist);
-    const ty    = Math.round(Math.sin((angle * Math.PI) / 180) * dist);
-    const rot   = Math.round(Math.random() * 360);
-    const dur   = (0.6 + Math.random() * 0.5).toFixed(2);
+    const dist = 60 + Math.random() * 80;
+    const tx = Math.round(Math.cos((angle * Math.PI) / 180) * dist);
+    const ty = Math.round(Math.sin((angle * Math.PI) / 180) * dist);
+    const rot = Math.round(Math.random() * 360);
+    const dur = (0.6 + Math.random() * 0.5).toFixed(2);
     const delay = (Math.random() * 0.2).toFixed(2);
 
     // Origin: centre of the modal box
@@ -1140,7 +1140,7 @@ function playSlotLandSound() {
   initAudio();
   if (!audioCtx) return;
   const now = audioCtx.currentTime;
-  const osc  = audioCtx.createOscillator();
+  const osc = audioCtx.createOscillator();
   const gain = audioCtx.createGain();
   osc.connect(gain);
   gain.connect(audioCtx.destination);
@@ -1202,10 +1202,10 @@ questionModal.addEventListener('click', (e) => {
 // =============================================================
 
 // DOM refs
-const prizeWheelModal   = document.getElementById('prizeWheelModal');
+const prizeWheelModal = document.getElementById('prizeWheelModal');
 const prizePlayerNameEl = document.getElementById('prizePlayerName');
-const prizeStarBurst    = document.getElementById('prizeStarBurst');
-const btnPrizeContinue  = document.getElementById('btnPrizeContinue');
+const prizeStarBurst = document.getElementById('prizeStarBurst');
+const btnPrizeContinue = document.getElementById('btnPrizeContinue');
 
 function openSoapPrizeModal() {
   // Set player name
@@ -1229,16 +1229,16 @@ function spawnSoapConfetti() {
   prizeStarBurst.innerHTML = '';
   const count = 16;
   for (let i = 0; i < count; i++) {
-    const star  = document.createElement('span');
-    star.className   = 'star';
+    const star = document.createElement('span');
+    star.className = 'star';
     star.textContent = gifts[Math.floor(Math.random() * gifts.length)];
 
     const angle = (360 / count) * i + (Math.random() * 30 - 15);
-    const dist  = 60 + Math.random() * 80;
-    const tx    = Math.round(Math.cos((angle * Math.PI) / 180) * dist);
-    const ty    = Math.round(Math.sin((angle * Math.PI) / 180) * dist);
-    const rot   = Math.round(Math.random() * 360);
-    const dur   = (0.6 + Math.random() * 0.5).toFixed(2);
+    const dist = 60 + Math.random() * 80;
+    const tx = Math.round(Math.cos((angle * Math.PI) / 180) * dist);
+    const ty = Math.round(Math.sin((angle * Math.PI) / 180) * dist);
+    const rot = Math.round(Math.random() * 360);
+    const dur = (0.6 + Math.random() * 0.5).toFixed(2);
     const delay = (Math.random() * 0.2).toFixed(2);
 
     star.style.cssText = `
