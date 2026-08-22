@@ -2413,156 +2413,103 @@ body.fullscreen-mode .slot-text {
 }
 
 /* =============================================
-   PRIZE WHEEL MODAL
+   PRIZE SOAP MODAL
    ============================================= */
 
-.prize-wheel-container {
+.prize-soap-container {
   position: relative;
   width: min(92%, 380px);
-  max-height: 92vh;
   margin: auto;
-  overflow-y: auto;
-  overflow-x: hidden;
-  background: #1a1506;
-  border: 2px solid rgba(255, 193, 7, 0.35);
-  border-radius: 24px;
-  padding: 22px 16px 20px;
+  overflow: hidden;
+  background: linear-gradient(160deg, #0e2a1a 0%, #051a0f 100%);
+  border: 2px solid rgba(91, 192, 248, 0.45);
+  border-radius: 28px;
+  padding: 32px 24px 28px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
+  gap: 16px;
   box-shadow:
-    0 24px 60px rgba(0,0,0,0.65),
-    0 0 40px rgba(255, 193, 7, 0.18);
+    0 24px 60px rgba(0,0,0,0.7),
+    0 0 50px rgba(91, 192, 248, 0.2);
   box-sizing: border-box;
-  animation: qmodalEnter 0.4s ease forwards;
+  animation: qmodalEnter 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  text-align: center;
+}
+
+/* Big soap emoji */
+.prize-soap-emoji-wrap {
+  font-size: 5rem;
+  line-height: 1;
+  animation: soapBounce 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.4) forwards;
+  filter: drop-shadow(0 0 20px rgba(91, 192, 248, 0.7));
+}
+
+@keyframes soapBounce {
+  0%   { transform: scale(0) rotate(-20deg); opacity: 0; }
+  60%  { transform: scale(1.25) rotate(8deg); opacity: 1; }
+  80%  { transform: scale(0.92) rotate(-4deg); }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
 }
 
 /* Header */
-.prize-wheel-header {
+.prize-soap-header {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
-  width: 100%;
-  text-align: center;
-}
-
-.prize-trophy-wrap {
-  font-size: 2.4rem;
-  line-height: 1;
-  animation: emojiPop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.3) forwards;
-  filter: drop-shadow(0 0 10px rgba(255, 193, 7, 0.6));
-}
-
-.prize-wheel-title {
-  font-family: var(--font-title);
-  font-size: 1rem;
-  font-weight: 600;
-  color: rgba(255,255,255,0.6);
-  text-transform: uppercase;
-  letter-spacing: 1.2px;
-}
-
-.prize-player-name {
-  font-family: var(--font-title);
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--accent-yellow);
-  text-shadow: 0 0 16px rgba(255, 193, 7, 0.5);
-  animation: namePop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.4) both;
-}
-
-/* Prize wheel canvas wrapper */
-.prize-wheel-wrapper {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: clamp(160px, 60vw, 260px);
-  height: clamp(160px, 60vw, 260px);
-  max-width: 100%;
-}
-
-.prize-wheel-pointer {
-  position: absolute;
-  top: -2px;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 1.6rem;
-  color: var(--accent-yellow);
-  text-shadow: 0 0 10px rgba(255,193,7,0.8), 0 2px 6px rgba(0,0,0,0.6);
-  z-index: 10;
-  line-height: 1;
-  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.8));
-}
-
-#prizeWheelCanvas {
-  width: 100% !important;
-  height: 100% !important;
-  max-width: 100%;
-  border-radius: 50%;
-  box-shadow:
-    0 8px 32px rgba(0,0,0,0.5),
-    0 0 0 4px rgba(255,193,7,0.2);
-}
-
-/* Prize result display */
-.prize-result-display {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  background: rgba(255, 193, 7, 0.1);
-  border: 2px solid rgba(255, 193, 7, 0.35);
-  border-radius: 50px;
-  padding: 8px 20px;
-  animation: resultEntry 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-}
-
-.prize-result-emoji {
-  font-size: 1.6rem;
-  line-height: 1;
-}
-
-.prize-result-name {
-  font-family: var(--font-title);
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: var(--accent-yellow);
-  text-shadow: 0 0 10px rgba(255,193,7,0.4);
-}
-
-/* All prizes gone notice */
-.prize-all-gone {
-  font-family: var(--font-title);
-  font-size: 0.9rem;
-  color: rgba(255,255,255,0.55);
-  text-align: center;
-  font-style: italic;
-  background: rgba(255,255,255,0.04);
-  border-radius: 12px;
-  padding: 10px 14px;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-/* Prize action buttons area */
-.prize-wheel-actions {
-  display: flex;
-  flex-direction: column;
   gap: 8px;
   width: 100%;
 }
 
-/* Spin button (gold gradient) */
-.btn-spin-prize {
+.prize-soap-title {
+  font-family: var(--font-title);
+  font-size: 2rem;
+  font-weight: 700;
+  color: #ffffff;
+  text-shadow: 0 0 20px rgba(91, 192, 248, 0.6);
+  animation: namePop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.4) 0.15s both;
+}
+
+.prize-soap-subtitle {
+  font-family: var(--font-body);
+  font-size: 1.05rem;
+  color: rgba(255,255,255,0.75);
+  animation: namePop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.4) 0.25s both;
+}
+
+.prize-soap-subtitle strong {
+  color: var(--accent-yellow);
+  text-shadow: 0 0 12px rgba(255, 193, 7, 0.5);
+}
+
+.prize-soap-badge {
+  font-family: var(--font-title);
+  font-size: 1.3rem;
+  font-weight: 700;
+  letter-spacing: 4px;
+  color: #1a1a1a;
+  background: linear-gradient(135deg, #5bc0f8, #38bdf8);
+  border-radius: 50px;
+  padding: 8px 28px;
+  box-shadow: 0 6px 20px rgba(91, 192, 248, 0.5), inset 0 2px 0 rgba(255,255,255,0.4);
+  animation: soapBadgePop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.4) 0.35s both;
+}
+
+@keyframes soapBadgePop {
+  0%   { transform: scale(0.5); opacity: 0; }
+  70%  { transform: scale(1.08); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* Continue button */
+.btn-prize-continue {
   width: 100%;
-  min-height: 48px;
-  padding: 12px 20px;
-  background: linear-gradient(135deg, #d4a000, #ffc107);
+  min-height: 52px;
+  padding: 14px 20px;
+  background: linear-gradient(135deg, var(--purple-banner), #4c1d95);
   border: none;
-  border-radius: 14px;
-  color: #1a1200;
+  border-radius: 16px;
+  color: #fff;
   font-family: var(--font-title);
   font-size: 1.05rem;
   font-weight: 700;
@@ -2571,98 +2518,17 @@ body.fullscreen-mode .slot-text {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  box-shadow: 0 6px 20px rgba(255,193,7,0.4), inset 0 2px 0 rgba(255,255,255,0.3);
+  box-shadow: 0 6px 20px rgba(113,44,249,0.4), inset 0 2px 0 rgba(255,255,255,0.2);
   transition: transform 0.2s ease, filter 0.2s ease;
   box-sizing: border-box;
-}
-.btn-spin-prize:hover:not(:disabled) {
-  transform: translateY(-2px);
-  filter: brightness(1.08);
-}
-.btn-spin-prize:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
-}
-
-/* Received button (green) */
-.btn-prize-received {
-  width: 100%;
-  min-height: 48px;
-  padding: 12px 20px;
-  background: linear-gradient(135deg, #198754, #0f5132);
-  border: none;
-  border-radius: 14px;
-  color: #fff;
-  font-family: var(--font-title);
-  font-size: 1rem;
-  font-weight: 700;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  box-shadow: 0 6px 20px rgba(25,135,84,0.4), inset 0 2px 0 rgba(255,255,255,0.2);
-  transition: transform 0.2s ease, filter 0.2s ease;
-  box-sizing: border-box;
-  animation: btnFadeIn 0.35s ease forwards;
-}
-.btn-prize-received:hover {
-  transform: translateY(-2px);
-  filter: brightness(1.1);
-}
-
-/* Sold-out button (red/danger) */
-.btn-prize-soldout {
-  width: 100%;
-  min-height: 44px;
-  padding: 10px 16px;
-  background: rgba(220, 53, 69, 0.12);
-  border: 1.5px solid rgba(220, 53, 69, 0.45);
-  border-radius: 12px;
-  color: #ff8a93;
-  font-family: var(--font-title);
-  font-size: 0.9rem;
-  font-weight: 600;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
-  box-sizing: border-box;
-  animation: btnFadeIn 0.35s ease 0.1s both;
-}
-.btn-prize-soldout:hover {
-  background: rgba(220, 53, 69, 0.22);
-  border-color: rgba(220, 53, 69, 0.7);
-  color: #ffc0c6;
-}
-
-/* Continue button (shown when all prizes gone) */
-.btn-prize-continue {
-  width: 100%;
-  min-height: 48px;
-  padding: 12px 20px;
-  background: linear-gradient(135deg, var(--purple-banner), #4c1d95);
-  border: none;
-  border-radius: 14px;
-  color: #fff;
-  font-family: var(--font-title);
-  font-size: 1rem;
-  font-weight: 700;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  box-shadow: 0 6px 20px rgba(113,44,249,0.35);
-  transition: transform 0.2s ease, filter 0.2s ease;
-  box-sizing: border-box;
-  animation: btnFadeIn 0.35s ease forwards;
+  animation: btnFadeIn 0.35s ease 0.5s both;
 }
 .btn-prize-continue:hover {
-  transform: translateY(-2px);
-  filter: brightness(1.1);
+  transform: translateY(-3px);
+  filter: brightness(1.12);
+}
+.btn-prize-continue:active {
+  transform: translateY(0);
 }
 
 /* Prize confetti burst */
@@ -2673,7 +2539,7 @@ body.fullscreen-mode .slot-text {
   height: 100%;
   pointer-events: none;
   overflow: hidden;
-  border-radius: 24px;
+  border-radius: 28px;
   z-index: 0;
 }
 .prize-star-burst .star {
@@ -2685,47 +2551,36 @@ body.fullscreen-mode .slot-text {
 
 /* Responsive */
 @media (max-width: 600px) {
-  .prize-wheel-container {
+  .prize-soap-container {
     width: 95%;
-    max-width: 350px;
-    padding: 18px 12px 16px;
-    gap: 10px;
-    border-radius: 20px;
+    max-width: 340px;
+    padding: 24px 16px 20px;
+    gap: 12px;
+    border-radius: 22px;
   }
-  .prize-wheel-wrapper {
-    width: 220px;
-    height: 220px;
+  .prize-soap-emoji-wrap {
+    font-size: 4rem;
   }
-  #prizeWheelCanvas {
-    width: 220px !important;
-    height: 220px !important;
+  .prize-soap-title {
+    font-size: 1.6rem;
   }
-  .prize-player-name {
-    font-size: 1.3rem;
-  }
-}
-@media (max-width: 400px) {
-  .prize-wheel-wrapper {
-    width: 185px;
-    height: 185px;
-  }
-  #prizeWheelCanvas {
-    width: 185px !important;
-    height: 185px !important;
+  .prize-soap-badge {
+    font-size: 1.1rem;
+    letter-spacing: 2px;
+    padding: 6px 20px;
   }
 }
 
-/* Fullscreen mode prize wheel */
-body.fullscreen-mode .prize-wheel-container {
-  max-width: 460px;
-  padding: 32px 28px 28px;
+/* Fullscreen mode */
+body.fullscreen-mode .prize-soap-container {
+  max-width: 440px;
+  padding: 40px 32px 32px;
 }
-body.fullscreen-mode .prize-wheel-wrapper {
-  width: 320px;
-  height: 320px;
+body.fullscreen-mode .prize-soap-emoji-wrap {
+  font-size: 6.5rem;
 }
-body.fullscreen-mode #prizeWheelCanvas {
-  width: 320px !important;
-  height: 320px !important;
+body.fullscreen-mode .prize-soap-title {
+  font-size: 2.6rem;
 }
+
 

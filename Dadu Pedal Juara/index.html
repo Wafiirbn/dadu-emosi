@@ -419,52 +419,31 @@
     </div>
   </div>
 
-  <!-- ===== PRIZE WHEEL MODAL ===== -->
+  <!-- ===== PRIZE MODAL — SABUN ===== -->
   <div class="modal-overlay hidden" id="prizeWheelModal">
-    <div class="prize-wheel-container" id="prizeWheelBox">
+    <div class="prize-soap-container" id="prizeWheelBox">
 
       <!-- Confetti burst -->
       <div class="prize-star-burst" id="prizeStarBurst"></div>
 
+      <!-- Soap emoji big -->
+      <div class="prize-soap-emoji-wrap">🧼</div>
+
       <!-- Header -->
-      <div class="prize-wheel-header">
-        <div class="prize-trophy-wrap">🎁</div>
-        <h2 class="prize-wheel-title">Hadiah untuk</h2>
-        <span class="prize-player-name" id="prizePlayerName">—</span>
+      <div class="prize-soap-header">
+        <h2 class="prize-soap-title">Selamat! 🎉</h2>
+        <p class="prize-soap-subtitle">
+          <strong id="prizePlayerName">—</strong> mendapat hadiah
+        </p>
+        <div class="prize-soap-badge">
+          🧼 &nbsp;S A B U N
+        </div>
       </div>
 
-      <!-- Wheel canvas -->
-      <div class="prize-wheel-wrapper">
-        <div class="prize-wheel-pointer">▼</div>
-        <canvas id="prizeWheelCanvas" width="300" height="300"></canvas>
-      </div>
-
-      <!-- Result display (hidden until spin done) -->
-      <div class="prize-result-display hidden" id="prizeResultDisplay">
-        <span class="prize-result-emoji" id="prizeResultEmoji">🎁</span>
-        <span class="prize-result-name" id="prizeResultName">—</span>
-      </div>
-
-      <!-- All prizes sold out notice -->
-      <p class="prize-all-gone hidden" id="prizeAllGone">
-        😔 Semua hadiah sudah habis! Lanjut ke giliran berikutnya.
-      </p>
-
-      <!-- Actions -->
-      <div class="prize-wheel-actions">
-        <button class="btn-spin-prize" id="btnSpinPrize">
-          <i class="fa-solid fa-rotate"></i> Putar Hadiah!
-        </button>
-        <button class="btn-prize-received hidden" id="btnPrizeReceived">
-          <i class="fa-solid fa-check-circle"></i> Hadiah Diterima!
-        </button>
-        <button class="btn-prize-soldout hidden" id="btnPrizeSoldOut">
-          <i class="fa-solid fa-ban"></i> Hadiah Sudah Habis
-        </button>
-        <button class="btn-prize-continue hidden" id="btnPrizeContinue">
-          <i class="fa-solid fa-forward-step"></i> Lanjut ke Giliran Berikutnya
-        </button>
-      </div>
+      <!-- Continue button -->
+      <button class="btn-prize-continue" id="btnPrizeContinue">
+        <i class="fa-solid fa-forward-step"></i> Lanjut ke Giliran Berikutnya
+      </button>
 
     </div>
   </div>
