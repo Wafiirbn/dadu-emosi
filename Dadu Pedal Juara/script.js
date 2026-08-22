@@ -1180,11 +1180,11 @@ function closeQuestionModal() {
     playedThisRound.push(activePlayer);
   }
 
-  // Immediately open Roulette Wheel for the next turn!
+  // Open Prize Wheel next (instead of directly going to next player wheel)
   if (allPlayers.length > 0) {
     setTimeout(() => {
-      openWheelModal();
-    }, 450);
+      openPrizeWheelModal();
+    }, 350);
   }
 }
 
@@ -1195,6 +1195,330 @@ btnCloseQuestion.addEventListener('click', closeQuestionModal);
 questionModal.addEventListener('click', (e) => {
   if (e.target === questionModal) closeQuestionModal();
 });
+
+
+// =============================================================
+//  PRIZE WHEEL — ROULETTE HADIAH
+// =============================================================
+
+// Prize definitions
+const PRIZES = [
+  { id: 'sabun',    name: 'Sabun',                   emoji: '🧼', color: '#5bc0f8' },
+  { id: 'ganci1',  name: 'Ganci 1 Beads',  emoji: '🔑', color: '#f9c74f' },
+  { id: 'ganci2',  name: 'Ganci 2 Beads',  emoji: '📿', color: '#f94144' },
+];
+
+// Track which prizes are sold out (persists across turns in one session)
+let soldOutPrizes = new Set();
+
+// Prize wheel state
+let prizeWheelSpinning = false;
+let prizeWheelAngle    = 0;
+let lastPrizeResult    = null; // currently landed prize object
+
+// DOM refs
+const prizeWheelModal   = document.getElementById('prizeWheelModal');
+const prizeWheelBox     = document.getElementById('prizeWheelBox');
+const prizeWheelCanvas  = document.getElementById('prizeWheelCanvas');
+const prizePlayerNameEl = document.getElementById('prizePlayerName');
+const prizeResultDisplay= document.getElementById('prizeResultDisplay');
+const prizeResultEmoji  = document.getElementById('prizeResultEmoji');
+const prizeResultName   = document.getElementById('prizeResultName');
+const prizeAllGone      = document.getElementById('prizeAllGone');
+const btnSpinPrize      = document.getElementById('btnSpinPrize');
+const btnPrizeReceived  = document.getElementById('btnPrizeReceived');
+const btnPrizeSoldOut   = document.getElementById('btnPrizeSoldOut');
+const btnPrizeContinue  = document.getElementById('btnPrizeContinue');
+const prizeStarBurst    = document.getElementById('prizeStarBurst');
+
+// Prize wheel colors (always in order, even if a slot is removed from available list)
+const PRIZE_COLORS = ['#5bc0f8', '#f9c74f', '#f94144', '#a78bfa', '#34d399'];
+
+function getAvailablePrizes() {
+  return PRIZES.filter(p => !soldOutPrizes.has(p.id));
+}
+
+function openPrizeWheelModal() {
+  // Reset state
+  prizeWheelSpinning = false;
+  prizeWheelAngle    = 0;
+  lastPrizeResult    = null;
+
+  // Set player name
+  prizePlayerNameEl.textContent = activePlayer || '—';
+
+  // Reset UI
+  prizeResultDisplay.classList.add('hidden');
+  prizeAllGone.classList.add('hidden');
+  btnSpinPrize.classList.remove('hidden');
+  btnSpinPrize.disabled = false;
+  btnSpinPrize.innerHTML = '<i class="fa-solid fa-rotate"></i> Putar Hadiah!';
+  btnPrizeReceived.classList.add('hidden');
+  btnPrizeSoldOut.classList.add('hidden');
+  btnPrizeContinue.classList.add('hidden');
+  prizeStarBurst.innerHTML = '';
+
+  const available = getAvailablePrizes();
+
+  if (available.length === 0) {
+    // All sold out - skip straight to continue
+    prizeAllGone.classList.remove('hidden');
+    btnSpinPrize.classList.add('hidden');
+    btnPrizeContinue.classList.remove('hidden');
+    drawPrizeWheel([]); // draw empty wheel
+  } else {
+    drawPrizeWheel(available);
+  }
+
+  prizeWheelModal.classList.remove('hidden');
+}
+
+function drawPrizeWheel(available) {
+  const canvas = prizeWheelCanvas;
+  const ctx    = canvas.getContext('2d');
+  const N      = available.length;
+  const R      = canvas.width / 2;
+  const cx = R, cy = R;
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  if (N === 0) {
+    // Draw grey "empty" circle
+    ctx.beginPath();
+    ctx.arc(cx, cy, R - 2, 0, 2 * Math.PI);
+    ctx.fillStyle = '#2a2a2a';
+    ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,0.3)';
+    ctx.font = 'bold 14px Fredoka, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('Habis semua 😔', cx, cy);
+    return;
+  }
+
+  const arc = (2 * Math.PI) / N;
+
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.rotate((prizeWheelAngle * Math.PI) / 180);
+  ctx.translate(-cx, -cy);
+
+  for (let i = 0; i < N; i++) {
+    const startAngle = i * arc - Math.PI / 2;
+    const endAngle   = startAngle + arc;
+    const prize      = available[i];
+
+    // Slice
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.arc(cx, cy, R - 2, startAngle, endAngle);
+    ctx.closePath();
+    ctx.fillStyle = PRIZE_COLORS[i % PRIZE_COLORS.length];
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,0.25)';
+    ctx.lineWidth   = 2;
+    ctx.stroke();
+
+    // Label
+    const midAngle  = startAngle + arc / 2;
+    const normAngle = ((midAngle % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(midAngle);
+    ctx.fillStyle  = '#ffffff';
+    const fontSize = Math.min(13, Math.floor(R / Math.max(N, 1.5) * 1.4));
+    ctx.font       = `bold ${fontSize}px Fredoka, Outfit, sans-serif`;
+    ctx.shadowColor = 'rgba(0,0,0,0.7)';
+    ctx.shadowBlur  = 4;
+
+    // emoji
+    const emojiX = (normAngle > Math.PI / 2 && normAngle < (3 * Math.PI) / 2) ? -(R * 0.58) : (R * 0.58);
+    const flipDir = (normAngle > Math.PI / 2 && normAngle < (3 * Math.PI) / 2);
+
+    ctx.save();
+    if (flipDir) ctx.rotate(Math.PI);
+    ctx.textAlign    = flipDir ? 'left' : 'right';
+    ctx.textBaseline = 'middle';
+
+    // Truncate long names
+    const maxLen = Math.max(8, Math.floor(R / 8));
+    const label  = prize.name.length > maxLen ? prize.name.slice(0, maxLen) + '…' : prize.name;
+
+    ctx.fillText(`${prize.emoji} ${label}`, flipDir ? -(R - 12) : (R - 12), 0);
+    ctx.restore();
+    ctx.restore();
+  }
+
+  // Center circle
+  ctx.beginPath();
+  ctx.arc(cx, cy, 20, 0, 2 * Math.PI);
+  ctx.fillStyle  = '#1a1506';
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(255,193,7,0.5)';
+  ctx.lineWidth   = 3;
+  ctx.stroke();
+
+  ctx.fillStyle      = 'rgba(255,255,255,0.9)';
+  ctx.font           = 'bold 14px Fredoka, sans-serif';
+  ctx.textAlign      = 'center';
+  ctx.textBaseline   = 'middle';
+  ctx.shadowBlur     = 0;
+  ctx.fillText('🎁', cx, cy);
+
+  ctx.restore();
+}
+
+function spinPrizeWheel() {
+  const available = getAvailablePrizes();
+  if (available.length === 0 || prizeWheelSpinning) return;
+
+  prizeWheelSpinning = true;
+  btnSpinPrize.disabled = true;
+
+  const N          = available.length;
+  const arc        = 360 / N;
+  const winnerIdx  = Math.floor(Math.random() * N);
+
+  // Target angle calculation (pointer at top = -90°)
+  const desiredMod = (360 - (winnerIdx * arc + arc / 2)) % 360;
+  const currentMod = ((prizeWheelAngle % 360) + 360) % 360;
+  let delta        = (desiredMod - currentMod) % 360;
+  if (delta < 0) delta += 360;
+
+  const totalSpins     = (5 + Math.floor(Math.random() * 4)) * 360;
+  const rotationAmount = totalSpins + delta;
+  const startAngle     = prizeWheelAngle;
+  const finalAngle     = startAngle + rotationAmount;
+  const duration       = 4000 + Math.random() * 1000;
+  const startTime      = performance.now();
+
+  function animate(now) {
+    const elapsed  = now - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+    const eased    = 1 - Math.pow(1 - progress, 3);
+
+    prizeWheelAngle = startAngle + rotationAmount * eased;
+    drawPrizeWheel(available);
+
+    if (progress < 1) {
+      requestAnimationFrame(animate);
+    } else {
+      prizeWheelAngle    = finalAngle;
+      prizeWheelSpinning = false;
+      drawPrizeWheel(available);
+      showPrizeResult(available[winnerIdx]);
+    }
+  }
+
+  requestAnimationFrame(animate);
+}
+
+function showPrizeResult(prize) {
+  lastPrizeResult = prize;
+
+  // Show result badge
+  prizeResultEmoji.textContent = prize.emoji;
+  prizeResultName.textContent  = prize.name;
+  prizeResultDisplay.classList.remove('hidden');
+
+  // Sound
+  playSlotLandSound();
+
+  // Confetti
+  spawnPrizeConfetti();
+
+  // Show action buttons
+  btnSpinPrize.classList.add('hidden');
+  btnPrizeReceived.classList.remove('hidden');
+  btnPrizeSoldOut.classList.remove('hidden');
+}
+
+function spawnPrizeConfetti() {
+  const gifts = ['🎁', '🌟', '✨', '💫', '🎊', '🎉', '⭐'];
+  prizeStarBurst.innerHTML = '';
+  const count = 14;
+  for (let i = 0; i < count; i++) {
+    const star  = document.createElement('span');
+    star.className   = 'star';
+    star.textContent = gifts[Math.floor(Math.random() * gifts.length)];
+
+    const angle = (360 / count) * i + (Math.random() * 30 - 15);
+    const dist  = 55 + Math.random() * 75;
+    const tx    = Math.round(Math.cos((angle * Math.PI) / 180) * dist);
+    const ty    = Math.round(Math.sin((angle * Math.PI) / 180) * dist);
+    const rot   = Math.round(Math.random() * 360);
+    const dur   = (0.6 + Math.random() * 0.5).toFixed(2);
+    const delay = (Math.random() * 0.2).toFixed(2);
+
+    star.style.cssText = `
+      left: 50%; top: 50%;
+      --tx: ${tx}px; --ty: ${ty}px;
+      --rot: ${rot}deg;
+      --dur: ${dur}s;
+      --delay: ${delay}s;
+      font-size: ${0.9 + Math.random() * 0.8}rem;
+    `;
+    prizeStarBurst.appendChild(star);
+  }
+}
+
+function closePrizeWheelAndContinue() {
+  prizeWheelModal.classList.add('hidden');
+  prizeStarBurst.innerHTML = '';
+
+  // Go to next player's order roulette
+  setTimeout(() => {
+    openWheelModal();
+  }, 350);
+}
+
+// ---- Button listeners ----
+
+btnSpinPrize.addEventListener('click', () => {
+  spinPrizeWheel();
+});
+
+btnPrizeReceived.addEventListener('click', () => {
+  // Hadiah diterima → next turn
+  closePrizeWheelAndContinue();
+});
+
+btnPrizeSoldOut.addEventListener('click', () => {
+  if (!lastPrizeResult) return;
+
+  // Mark this prize as sold out
+  soldOutPrizes.add(lastPrizeResult.id);
+
+  // Hide result + action buttons, reset
+  prizeResultDisplay.classList.add('hidden');
+  btnPrizeReceived.classList.add('hidden');
+  btnPrizeSoldOut.classList.add('hidden');
+  prizeStarBurst.innerHTML = '';
+  lastPrizeResult = null;
+
+  const remaining = getAvailablePrizes();
+
+  if (remaining.length === 0) {
+    // All prizes now sold out
+    prizeAllGone.classList.remove('hidden');
+    btnSpinPrize.classList.add('hidden');
+    btnPrizeContinue.classList.remove('hidden');
+    drawPrizeWheel([]);
+  } else {
+    // Re-draw wheel with remaining prizes and allow spin again
+    prizeWheelAngle = 0;
+    drawPrizeWheel(remaining);
+    btnSpinPrize.classList.remove('hidden');
+    btnSpinPrize.disabled = false;
+    btnSpinPrize.innerHTML = '<i class="fa-solid fa-rotate"></i> Putar Lagi!';
+  }
+});
+
+btnPrizeContinue.addEventListener('click', () => {
+  closePrizeWheelAndContinue();
+});
+
 
 
 
